@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import resourceService from '../services/resourceService';
 import api from '../services/api';
+import { useNotifier } from '../components/Notifier';
 import ResourceForm from './ResourceForm';
 
 export default function ResourcePage({ resource, onBack }) {
@@ -38,6 +39,8 @@ export default function ResourcePage({ resource, onBack }) {
       setMeta(null);
     }
   };
+
+  const notify = useNotifier();
 
   const handleCreate = async () => {
     // Build an initial object from meta when available so the form matches DB
@@ -90,7 +93,7 @@ export default function ResourcePage({ resource, onBack }) {
       await resourceService.remove(resource, id);
       await load();
     } catch (err) {
-      alert('Error al eliminar: ' + (err.message || err));
+      notify('Error al eliminar: ' + (err.message || err), 'error');
     }
   };
 
@@ -110,18 +113,24 @@ export default function ResourcePage({ resource, onBack }) {
     } catch (err) {
       // Better error handling for validation (400) responses
       const resp = err?.response?.data;
-      if (err?.response?.status === 400 && resp) {
+  if (err?.response?.status === 400 && resp) {
         // If server returned allowed options (e.g., for tipo), show them
         if (resp.allowed) {
           const opts = resp.allowed.map(o => `${o.idtipo}: ${o.nombre} (${o.codigo})`).join('\n');
-          alert(`Error: ${resp.message} - provided: ${resp.provided}\nAllowed:\n${opts}`);
+          notify(`Error: ${resp.message} - provided: ${resp.provided}\nAllowed:\n${opts}`, 'error');
         } else if (resp.missing) {
-          alert(`Missing required fields: ${resp.missing.join(', ')}`);
+          notify(`Missing required fields: ${resp.missing.join(', ')}`, 'error');
         } else {
-          alert(`Validation error: ${resp.message || JSON.stringify(resp)}`);
+          // Show more detail when available (constraint name / detail)
+          const parts = [];
+          if (resp.message) parts.push(resp.message);
+          if (resp.constraint) parts.push(`constraint: ${resp.constraint}`);
+          if (resp.detail) parts.push(String(resp.detail));
+          const text = parts.length ? parts.join(' — ') : JSON.stringify(resp);
+          notify(`Validation error: ${text}`, 'error');
         }
       } else {
-        alert('Save error: ' + (err.message || err));
+        notify('Save error: ' + (err.message || err), 'error');
       }
     }
   };

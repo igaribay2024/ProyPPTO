@@ -28,7 +28,7 @@ export default function Dashboard({ user }) {
           <ResourcePage resource={active} onBack={() => setActive(null)} />
         ) : (
           <div>
-            <h2>Bienvenido al dashboard</h2>
+            <h2>Bienvenido al Sistema de Control de Presupuestos de TI</h2>
             <p>Selecciona un módulo del menú para comenzar (Presupuestos, Gastos, Usuarios, Conceptos, Cuentas, Partidas, Plantas).</p>
           </div>
         )}

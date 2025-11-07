@@ -4,6 +4,7 @@ import Login from './components/Login';
 // and should not be imported here to avoid unused-import warnings.
 import Welcome from './components/Welcome';
 import Dashboard from './dashboard/dashboard';
+import { NotifierProvider } from './components/Notifier';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -24,19 +25,29 @@ function App() {
     }
   }, []);
 
-  if (!user) return <Login setUser={setUser} />;
+  if (!user) return (
+    <NotifierProvider>
+      <Login setUser={setUser} />
+    </NotifierProvider>
+  );
 
   if (!showDashboard) {
     return (
-      <Welcome
-        user={user}
-        onEnter={() => setShowDashboard(true)}
-        setUser={setUser}
-      />
+      <NotifierProvider>
+        <Welcome
+          user={user}
+          onEnter={() => setShowDashboard(true)}
+          setUser={setUser}
+        />
+      </NotifierProvider>
     );
   }
 
-  return <Dashboard user={user} />;
+  return (
+    <NotifierProvider>
+      <Dashboard user={user} />
+    </NotifierProvider>
+  );
 }
 
 export default App;

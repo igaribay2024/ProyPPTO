@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import api from '../services/api';
+import { useNotifier } from '../components/Notifier';
 
 // meta: optional array of column descriptions from /api/meta/:resource
 export default function ResourceForm({ initial = {}, meta = null, onCancel, onSubmit }) {
@@ -132,6 +133,8 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
     return () => { mounted = false; };
   }, [meta, fieldList]);
 
+  const notify = useNotifier();
+
   const handleChange = (k, v) => setData(prev => ({ ...prev, [k]: v }));
 
   const handleAddField = () => {
@@ -166,7 +169,7 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
       normalized[k] = v;
     }
 
-    // Client-side validation for partidas dates to avoid DB CHECK constraint errors
+  // Client-side validation for partidas dates to avoid DB CHECK constraint errors
     try {
       if (resource === 'partidas') {
         const a = normalized['fecha_ini'] || normalized['fecha_inicio'] || '';
@@ -176,11 +179,11 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
           const db = new Date(b);
           // DB constraint requires fecha_fin to be after fecha_ini (strictly greater)
           if (isNaN(da.getTime()) || isNaN(db.getTime())) {
-            alert('Formato de fecha inválido. Use AAAA-MM-DD.');
+            notify('Formato de fecha inválido. Use AAAA-MM-DD.', 'error');
             return;
           }
           if (db.getTime() <= da.getTime()) {
-            alert('La fecha de fin debe ser posterior a la fecha de inicio. Corrija las fechas antes de guardar.');
+            notify('La fecha de fin debe ser posterior a la fecha de inicio. Corrija las fechas antes de guardar.', 'error');
             return;
           }
         }

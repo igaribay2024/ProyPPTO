@@ -141,20 +141,34 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
       const col = meta && Array.isArray(meta) ? meta.find(c => c.Field === k) : null;
       const type = (col && col.Type) ? col.Type.toLowerCase() : '';
 
-      // date handling: ensure yyyy-mm-dd
+      // date handling: ensure yyyy-mm-dd when possible
       if (type.includes('date') && v) {
         const m = String(v).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
         if (m) v = `${m[3]}-${m[2]}-${m[1]}`;
+        // normalize Date objects or ISO strings
+        else if (v instanceof Date) v = v.toISOString().slice(0, 10);
+        else if (String(v).includes('T')) v = String(v).slice(0, 10);
       }
 
-      // numeric coercion
-      if (type.match(/int|float|double|decimal/)) {
+      // numeric coercion: use meta when available, otherwise guess by field name
+      const isNumericType = type.match(/int|float|double|decimal/);
+      const nameLower = k.toLowerCase();
+      const looksNumeric = /monto|importe|amount|costo|valor|precio|cantidad|total/.test(nameLower);
+      if (isNumericType || (!type && looksNumeric)) {
         if (v === '') v = null;
         else if (typeof v === 'string') {
-          const n = Number(v);
+          // remove thousand separators and spaces
+          const cleaned = v.replace(/\./g, '').replace(/,/g, '.').replace(/\s/g, '');
+          const n = Number(cleaned);
           if (!Number.isNaN(n)) v = n;
         }
       }
+
+      // id-like empty strings -> null so server can auto-generate
+      if (/^id/i.test(k) && (v === '' || v === undefined)) v = null;
+
+      // final trim for strings
+      if (typeof v === 'string') v = v.trim();
 
       normalized[k] = v;
     }

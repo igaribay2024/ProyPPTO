@@ -1,0 +1,48 @@
+/* Simple responsive layout used by Dashboard */
+.layout-root {
+  display: flex;
+  height: 100vh;
+  background: #0f172a10; /* subtle */
+  color: #0f172a;
+}
+
+.layout-sidebar {
+  width: 260px;
+  background: #1f2937; /* dark slate */
+  color: #94a3b8;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.layout-brand h3 { margin: 0 0 6px 0; color: #fff }
+.layout-user { font-size: 12px; color: #cbd5e1; margin-bottom: 12px; }
+
+.layout-nav { display:flex; flex-direction: column; gap: 14px; margin-top: 12px }
+.layout-link {
+  display:block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #34d399; /* teal */
+  text-decoration: none;
+  font-weight: 600;
+  transition: all .12s ease;
+}
+.layout-link:hover { background: rgba(255,255,255,0.03); color: #a7f3d0; transform: translateX(4px); }
+.layout-link.active { background: rgba(255,255,255,0.04); color: #10b981; }
+
+.layout-logout { margin-top: 12px; width: 100%; padding: 10px 12px; border-radius: 8px; background: transparent; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.06); cursor: pointer; }
+.layout-logout:hover { background: rgba(255,255,255,0.03); }
+
+.layout-content {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+}
+
+.layout-header h2 { margin: 0 0 6px 0; }
+.layout-main { margin-top: 18px; }
+
+@media (max-width: 800px) {
+  .layout-root { flex-direction: column; }
+  .layout-sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e6e9ee; }
+}

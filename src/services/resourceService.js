@@ -3,7 +3,8 @@ import api from './api';
 // All CRUD endpoints are mounted under /api on the server
 const base = '/api';
 
-const list = (resource) => api.get(`${base}/${resource}`).then(r => r.data);
+// append timestamp to bypass caches that return 304. Backend should return actual data.
+const list = (resource) => api.get(`${base}/${resource}`, { params: { _ts: Date.now() } }).then(r => r.data);
 const get = (resource, id) => api.get(`${base}/${resource}/${id}`).then(r => r.data);
 const create = (resource, data) => api.post(`${base}/${resource}`, data).then(r => r.data);
 const update = (resource, id, data) => {

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import './Login.css';
 import { login } from '../services/auth';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ setUser }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,6 +25,8 @@ const Login = ({ setUser }) => {
       if (response.token) {
         // Guardar usuario en el estado de la app si se proporcionó setUser
         if (typeof setUser === 'function') setUser(response.user || response);
+        // redirect immediately after successful login
+        try { navigate('/dashboard', { replace: true }); } catch (e) {}
         // Redirigir al usuario después del login exitoso (App controla vista)
       } else {
         setError('Login successful but no token received');

@@ -1,49 +1,84 @@
-import React, { useState } from 'react';
-import Menu from './Menu';
-import ResourcePage from './ResourcePage';
+import React from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
+import PaidIcon from '@mui/icons-material/Paid';
+import PeopleIcon from '@mui/icons-material/People';
+import CategoryIcon from '@mui/icons-material/Category';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import ApartmentIcon from '@mui/icons-material/Apartment';
+import '../styles/layout.css';
 
-const resources = [
-  'presupuestos',
-  'gastos',
-  'usuarios',
-  'conceptos',
-  'cuentas',
-  'partidas',
-  'plantas',
-  'constructor',
-  'constructor-inline',
+const items = [
+  { key: 'presupuestos', label: 'Presupuestos' },
+  { key: 'gastos', label: 'Gastos' },
+  { key: 'usuarios', label: 'Usuarios' },
+  { key: 'conceptos', label: 'Conceptos' },
+  { key: 'cuentas', label: 'Cuentas' },
+  { key: 'partidas', label: 'Partidas' },
+  { key: 'plantas', label: 'Plantas' }
 ];
 
-// Dashboard accepts an optional `user` prop (App passes it). We keep it available for future use.
-export default function Dashboard({ user }) {
-  // Show the presupuestal constructor embed immediately after login
-  // so users see the chart on the main page by default.
-  const [active, setActive] = useState('constructor');
+export default function DashboardLayout({ user, setUser }) {
+  const navigate = useNavigate();
 
+  function handleLogout() {
+    try { localStorage.removeItem('user'); } catch (e) {}
+    try { if (typeof setUser === 'function') setUser(null); } catch (e) {}
+    // navigate to login page
+    navigate('/login', { replace: true });
+    // ensure a full reload in case some state persisted
+    try { window.location.href = '/login'; } catch (e) {}
+  }
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
-      <div style={{ width: 240, borderRight: '1px solid #ddd', padding: 12 }}>
-        <h3>Panel</h3>
-        <div style={{ fontSize: 12, marginBottom: 8 }}>Usuario: {user?.nombre || user?.name || 'Usuario'}</div>
-        <Menu resources={resources} active={active} onSelect={setActive} />
-      </div>
-      <div style={{ flex: 1, padding: 12 }}>
-        {active ? (
-          active === 'constructor' ? (
-            // lazy-load embed component only when selected
-            React.createElement(require('./PresupuestalEmbed').default)
-          ) : active === 'constructor-inline' ? (
-            React.createElement(require('./PresupuestalInline').default)
-          ) : (
-            <ResourcePage resource={active} onBack={() => setActive(null)} />
-          )
-        ) : (
-          <div>
-            <h2>Bienvenido al Sistema de Control de Presupuestos de TI</h2>
-            <p>Selecciona un módulo del menú para comenzar (Presupuestos, Gastos, Usuarios, Conceptos, Cuentas, Partidas, Plantas).</p>
-          </div>
-        )}
-      </div>
+    <div className="layout-root">
+      <aside className="layout-sidebar">
+        <div className="layout-brand">
+          <h3>Panel</h3>
+          <div className="layout-user">{user?.nombre || user?.name || 'Usuario'}</div>
+        </div>
+
+        <nav className="layout-nav">
+          {items.map(i => {
+            let Icon = null;
+            switch (i.key) {
+              case 'presupuestos': Icon = HomeWorkIcon; break;
+              case 'gastos': Icon = PaidIcon; break;
+              case 'usuarios': Icon = PeopleIcon; break;
+              case 'conceptos': Icon = CategoryIcon; break;
+              case 'cuentas': Icon = AccountBalanceWalletIcon; break;
+              case 'partidas': Icon = ListAltIcon; break;
+              case 'plantas': Icon = ApartmentIcon; break;
+              default: Icon = null;
+            }
+            return (
+              <NavLink
+                className={({ isActive }) => `layout-link ${isActive ? 'active' : ''}`}
+                to={`/dashboard/${i.key}`}
+                key={i.key}
+              >
+                {Icon ? <Icon style={{ marginRight: 8, verticalAlign: 'middle', color: 'inherit' }} /> : null}
+                {i.label}
+              </NavLink>
+            );
+          })}
+        </nav>
+        <div style={{ marginTop: 18 }}>
+          <button className="layout-logout" onClick={handleLogout}>Cerrar sesión</button>
+        </div>
+      </aside>
+
+      <main className="layout-content">
+        <div className="layout-header">
+          <h2>Bienvenido al Sistema de Control de Presupuestos</h2>
+          <p>Selecciona un módulo del menú izquierdo para comenzar.</p>
+        </div>
+
+        <div className="layout-main">
+          {/* nested routes will render here */}
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }

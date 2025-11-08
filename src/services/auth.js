@@ -34,3 +34,15 @@ export const login = async (email, password) => {
     throw new Error(serverMsg);
   }
 };
+
+export const validateToken = async () => {
+  try {
+    // Expect backend to expose an endpoint that returns current user when token is valid
+    const resp = await api.get('/api/me');
+    // resp.data should be the user object
+    return resp.data;
+  } catch (err) {
+    console.error('validateToken failed', err);
+    throw err;
+  }
+};

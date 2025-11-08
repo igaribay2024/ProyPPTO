@@ -9,7 +9,11 @@ const baseURL =
 
 const api = axios.create({
   baseURL,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
+    Pragma: 'no-cache'
+  },
   // timeout: 10000, // opcional
 });
 // Automatically attach Authorization header if token is present in localStorage

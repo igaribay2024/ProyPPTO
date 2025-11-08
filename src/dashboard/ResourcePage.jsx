@@ -4,6 +4,8 @@ import api from '../services/api';
 import ResourceForm from './ResourceForm';
 import Box from '@mui/material/Box';
 import { DataGrid } from '@mui/x-data-grid';
+import { useToast } from '../components/ToastProvider';
+import { useNavigate } from 'react-router-dom';
 
 export default function ResourcePage({ resource, onBack }) {
   const [items, setItems] = useState([]);
@@ -11,6 +13,12 @@ export default function ResourcePage({ resource, onBack }) {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
   const [meta, setMeta] = useState(null);
+  const toast = useToast();
+  const navigate = useNavigate();
+  // If parent didn't provide an onBack handler, default to navigating to dashboard root
+  const handleBack = onBack || (() => {
+    try { navigate('/dashboard', { replace: true }); } catch (e) { try { window.location.href = '/dashboard'; } catch (e2) {} }
+  });
 
   const load = async () => {
     setLoading(true);
@@ -18,8 +26,11 @@ export default function ResourcePage({ resource, onBack }) {
     try {
       const data = await resourceService.list(resource);
       setItems(data);
+      try { toast?.add(`Datos cargados: ${resource}`, 'success', 2500); } catch (e) {}
     } catch (err) {
-      setError(err.message || 'Failed to load');
+      const msg = err?.message || 'Failed to load';
+      setError(msg);
+      try { toast?.add(`Error al cargar ${resource}: ${msg}`, 'error', 6000); } catch (e) {}
     } finally {
       setLoading(false);
     }
@@ -91,8 +102,10 @@ export default function ResourcePage({ resource, onBack }) {
     try {
       await resourceService.remove(resource, id);
       await load();
+      try { toast?.add('Registro eliminado', 'success'); } catch (e) {}
     } catch (err) {
-      alert('Error al eliminar: ' + (err.message || err));
+      const msg = err?.message || err;
+      try { toast?.add('Error al eliminar: ' + msg, 'error', 6000); } catch (e) {}
     }
   };
 
@@ -109,21 +122,22 @@ export default function ResourcePage({ resource, onBack }) {
       }
       setEditing(null);
       await load();
+      try { toast?.add('Registro guardado', 'success'); } catch (e) {}
     } catch (err) {
       // Better error handling for validation (400) responses
       const resp = err?.response?.data;
-      if (err?.response?.status === 400 && resp) {
+  if (err?.response?.status === 400 && resp) {
         // If server returned allowed options (e.g., for tipo), show them
         if (resp.allowed) {
           const opts = resp.allowed.map(o => `${o.idtipo}: ${o.nombre} (${o.codigo})`).join('\n');
           alert(`Error: ${resp.message} - provided: ${resp.provided}\nAllowed:\n${opts}`);
         } else if (resp.missing) {
-          alert(`Missing required fields: ${resp.missing.join(', ')}`);
+          try { toast?.add(`Campos faltantes: ${resp.missing.join(', ')}`, 'error', 6000); } catch (e) {}
         } else {
-          alert(`Validation error: ${resp.message || JSON.stringify(resp)}`);
+          try { toast?.add(`Validation error: ${resp.message || JSON.stringify(resp)}`, 'error', 8000); } catch (e) {}
         }
       } else {
-        alert('Save error: ' + (err.message || err));
+        try { toast?.add('Error al guardar: ' + (err.message || err), 'error', 8000); } catch (e) {}
       }
     }
   };
@@ -133,7 +147,7 @@ export default function ResourcePage({ resource, onBack }) {
   return (
     <div>
       <div style={{ marginBottom: 12 }}>
-        <button onClick={onBack}>← Volver</button>
+  <button onClick={handleBack}>← Volver</button>
         <h2 style={{ display: 'inline-block', marginLeft: 12 }}>{resource.toUpperCase()}</h2>
       </div>
 

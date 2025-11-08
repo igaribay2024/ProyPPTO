@@ -6,7 +6,6 @@ const bcrypt = require('bcryptjs');
 // Map resource names to table and primary key
 const resources = {
   usuarios: { table: 'usuarios', pk: 'idusuario' },
-  tipo_usuario: { table: 'tipo_usuario', pk: 'idtipo' },
   presupuestos: { table: 'presupuestos', pk: 'idpresupuesto' },
   gastos: { table: 'gastos', pk: 'idgasto' },
   conceptos: { table: 'conceptos', pk: 'idconcepto' },
@@ -247,18 +246,6 @@ router.post('/:resource', async (req, res) => {
       [result] = await pool.execute(insertSql, values);
     } catch (sqlErr) {
       console.error('SQL error during INSERT for', cfg.table, 'sql:', insertSql, 'values:', values, 'error:', sqlErr && sqlErr.message);
-      // If a DB CHECK constraint is violated (e.g., dates), return a friendly 400 with details
-      if (sqlErr && sqlErr.code === 'ER_CHECK_CONSTRAINT_VIOLATED') {
-        const raw = sqlErr.sqlMessage || sqlErr.message || '';
-        const m = String(raw).match(/Check constraint '([^']+)' is violated/i);
-        const constraint = m ? m[1] : null;
-        const constraintMessages = {
-          // common constraint mapping -> friendly Spanish message
-          chk_fechas: 'La fecha de fin debe ser posterior a la fecha de inicio.',
-        };
-        const friendly = constraint && constraintMessages[constraint] ? constraintMessages[constraint] : raw;
-        return res.status(400).json({ message: 'Constraint violated', constraint, detail: friendly });
-      }
       throw sqlErr;
     }
     const insertId = result.insertId;

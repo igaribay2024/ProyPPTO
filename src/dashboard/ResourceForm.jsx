@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import api from '../services/api';
-import { useNotifier } from '../components/Notifier';
 
 // meta: optional array of column descriptions from /api/meta/:resource
 export default function ResourceForm({ initial = {}, meta = null, onCancel, onSubmit }) {
@@ -17,7 +16,7 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
         .map(c => c.Field);
       // If initial has an id-like key with a truthy value, keep it.
       // Additionally, include id-like keys that are required by the DB (NOT NULL and no default)
-      let filtered = keys.filter(k => {
+      return keys.filter(k => {
         if (/id/i.test(k)) {
           const val = initial && Object.prototype.hasOwnProperty.call(initial, k) ? initial[k] : undefined;
           if (val !== undefined && val !== null && String(val).trim() !== '') return true;
@@ -28,13 +27,6 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
         }
         return true;
       });
-      // Special-case: for usuarios resource ensure idplanta and tipo_id are present in form when available in meta
-      if (resource === 'usuarios' && Array.isArray(meta)) {
-        for (const extra of ['idplanta', 'tipo_id']) {
-          if (meta.some(c => c.Field === extra) && !filtered.includes(extra)) filtered.push(extra);
-        }
-      }
-      return filtered;
     }
     // Fallback: use initial keys but omit id-like keys with empty values
     return Object.keys(initial).filter(k => {
@@ -133,8 +125,6 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
     return () => { mounted = false; };
   }, [meta, fieldList]);
 
-  const notify = useNotifier();
-
   const handleChange = (k, v) => setData(prev => ({ ...prev, [k]: v }));
 
   const handleAddField = () => {
@@ -169,30 +159,6 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
       normalized[k] = v;
     }
 
-  // Client-side validation for partidas dates to avoid DB CHECK constraint errors
-    try {
-      if (resource === 'partidas') {
-        const a = normalized['fecha_ini'] || normalized['fecha_inicio'] || '';
-        const b = normalized['fecha_fin'] || normalized['fecha_fin'] || '';
-        if (a && b) {
-          const da = new Date(a);
-          const db = new Date(b);
-          // DB constraint requires fecha_fin to be after fecha_ini (strictly greater)
-          if (isNaN(da.getTime()) || isNaN(db.getTime())) {
-            notify('Formato de fecha inválido. Use AAAA-MM-DD.', 'error');
-            return;
-          }
-          if (db.getTime() <= da.getTime()) {
-            notify('La fecha de fin debe ser posterior a la fecha de inicio. Corrija las fechas antes de guardar.', 'error');
-            return;
-          }
-        }
-      }
-    } catch (err) {
-      // if anything unexpected happens, don't block submit; server will validate
-      console.warn('Date validation failed', err && err.message);
-    }
-
     onSubmit(normalized);
   };
 
@@ -203,17 +169,11 @@ export default function ResourceForm({ initial = {}, meta = null, onCancel, onSu
 
     // If usuarios.tipo_id field, render a select populated from tipoOptions
     if (resource === 'usuarios' && k === 'tipo_id') {
-      if (tipoOptions && tipoOptions.length > 0) {
-        return (
-          <select value={value ?? ''} onChange={e => handleChange(k, e.target.value)} style={{ width: '100%', padding: 6 }}>
-            <option value="">(seleccionar)</option>
-            {tipoOptions.map(o => <option key={o.idtipo} value={o.idtipo}>{o.nombre} ({o.codigo})</option>)}
-          </select>
-        );
-      }
-      // fallback: allow entering numeric id when no options available
       return (
-        <input type="number" step="1" value={value ?? ''} onChange={e => handleChange(k, e.target.value)} style={{ width: '100%', padding: 6 }} />
+        <select value={value ?? ''} onChange={e => handleChange(k, e.target.value)} style={{ width: '100%', padding: 6 }}>
+          <option value="">(seleccionar)</option>
+          {tipoOptions.map(o => <option key={o.idtipo} value={o.idtipo}>{o.nombre} ({o.codigo})</option>)}
+        </select>
       );
     }
     // For FK lookup fields, render selects when options are available

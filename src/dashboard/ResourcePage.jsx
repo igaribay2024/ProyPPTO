@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import resourceService from '../services/resourceService';
 import api from '../services/api';
-import { useNotifier } from '../components/Notifier';
 import ResourceForm from './ResourceForm';
+import Box from '@mui/material/Box';
+import { DataGrid } from '@mui/x-data-grid';
 
 export default function ResourcePage({ resource, onBack }) {
   const [items, setItems] = useState([]);
@@ -39,8 +40,6 @@ export default function ResourcePage({ resource, onBack }) {
       setMeta(null);
     }
   };
-
-  const notify = useNotifier();
 
   const handleCreate = async () => {
     // Build an initial object from meta when available so the form matches DB
@@ -93,7 +92,7 @@ export default function ResourcePage({ resource, onBack }) {
       await resourceService.remove(resource, id);
       await load();
     } catch (err) {
-      notify('Error al eliminar: ' + (err.message || err), 'error');
+      alert('Error al eliminar: ' + (err.message || err));
     }
   };
 
@@ -113,24 +112,18 @@ export default function ResourcePage({ resource, onBack }) {
     } catch (err) {
       // Better error handling for validation (400) responses
       const resp = err?.response?.data;
-  if (err?.response?.status === 400 && resp) {
+      if (err?.response?.status === 400 && resp) {
         // If server returned allowed options (e.g., for tipo), show them
         if (resp.allowed) {
           const opts = resp.allowed.map(o => `${o.idtipo}: ${o.nombre} (${o.codigo})`).join('\n');
-          notify(`Error: ${resp.message} - provided: ${resp.provided}\nAllowed:\n${opts}`, 'error');
+          alert(`Error: ${resp.message} - provided: ${resp.provided}\nAllowed:\n${opts}`);
         } else if (resp.missing) {
-          notify(`Missing required fields: ${resp.missing.join(', ')}`, 'error');
+          alert(`Missing required fields: ${resp.missing.join(', ')}`);
         } else {
-          // Show more detail when available (constraint name / detail)
-          const parts = [];
-          if (resp.message) parts.push(resp.message);
-          if (resp.constraint) parts.push(`constraint: ${resp.constraint}`);
-          if (resp.detail) parts.push(String(resp.detail));
-          const text = parts.length ? parts.join(' — ') : JSON.stringify(resp);
-          notify(`Validation error: ${text}`, 'error');
+          alert(`Validation error: ${resp.message || JSON.stringify(resp)}`);
         }
       } else {
-        notify('Save error: ' + (err.message || err), 'error');
+        alert('Save error: ' + (err.message || err));
       }
     }
   };
@@ -155,31 +148,30 @@ export default function ResourcePage({ resource, onBack }) {
       ) : editing ? (
         <ResourceForm resource={resource} initial={editing} meta={meta} onCancel={() => setEditing(null)} onSubmit={handleSubmit} />
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                {(items[0] ? Object.keys(items[0]) : ['#']).map((k) => (
-                  <th key={k} style={{ borderBottom: '1px solid #ccc', textAlign: 'left', padding: 6 }}>{k}</th>
-                ))}
-                <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it) => (
-                <tr key={it[pkKey] || JSON.stringify(it)}>
-                  {(items[0] ? Object.keys(items[0]) : ['#']).map((k) => (
-                    <td key={k} style={{ padding: 6, borderBottom: '1px solid #f0f0f0' }}>{String(it[k])}</td>
-                  ))}
-                  <td style={{ padding: 6 }}>
-                    <button onClick={() => handleEdit(it)}>Editar</button>
-                    <button onClick={() => handleDelete(it[pkKey])} style={{ marginLeft: 8 }}>Eliminar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Box sx={{ height: 600, width: '100%' }}>
+          {/* Build columns dynamically from the first item */}
+          {items && items.length > 0 && (
+            <DataGrid
+              rows={items.map((it, idx) => ({ ...it, id: it[pkKey] !== undefined && it[pkKey] !== null ? it[pkKey] : idx }))}
+              columns={[...Object.keys(items[0]).map((k) => ({ field: k, headerName: k, width: k === pkKey ? 90 : 150 })), { field: 'acciones', headerName: 'Acciones', width: 180, sortable: false, filterable: false, renderCell: (params) => (
+                <div>
+                  <button onClick={() => handleEdit(params.row)}>Editar</button>
+                  <button onClick={() => handleDelete(params.row[pkKey])} style={{ marginLeft: 8 }}>Eliminar</button>
+                </div>
+              ) }]
+              }
+              initialState={{
+                pagination: { paginationModel: { pageSize: 5 } }
+              }}
+              pageSizeOptions={[5, 10, 25]}
+              checkboxSelection
+              disableRowSelectionOnClick
+              autoHeight={false}
+            />
+          )}
+          {/* If there are no items, still render an empty grid message */}
+          {(!items || items.length === 0) && <div>No hay registros</div>}
+        </Box>
       )}
     </div>
   );

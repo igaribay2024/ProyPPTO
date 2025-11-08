@@ -10,11 +10,15 @@ const resources = [
   'cuentas',
   'partidas',
   'plantas',
+  'constructor',
+  'constructor-inline',
 ];
 
 // Dashboard accepts an optional `user` prop (App passes it). We keep it available for future use.
 export default function Dashboard({ user }) {
-  const [active, setActive] = useState(null);
+  // Show the presupuestal constructor embed immediately after login
+  // so users see the chart on the main page by default.
+  const [active, setActive] = useState('constructor');
 
   return (
     <div style={{ display: 'flex', height: '100%' }}>
@@ -25,7 +29,14 @@ export default function Dashboard({ user }) {
       </div>
       <div style={{ flex: 1, padding: 12 }}>
         {active ? (
-          <ResourcePage resource={active} onBack={() => setActive(null)} />
+          active === 'constructor' ? (
+            // lazy-load embed component only when selected
+            React.createElement(require('./PresupuestalEmbed').default)
+          ) : active === 'constructor-inline' ? (
+            React.createElement(require('./PresupuestalInline').default)
+          ) : (
+            <ResourcePage resource={active} onBack={() => setActive(null)} />
+          )
         ) : (
           <div>
             <h2>Bienvenido al Sistema de Control de Presupuestos de TI</h2>

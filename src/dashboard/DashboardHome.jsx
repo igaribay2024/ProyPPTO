@@ -194,7 +194,36 @@ export default function DashboardHome() {
         </div>
         <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
           <div style={{ fontSize: 12, color: '#666' }}>Diferencia</div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>${totals.diferencia.toLocaleString()}</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>${totals.diferencia.toLocaleString()}</div>
+              {(() => {
+                const pct = totals.totalPartidas ? (totals.diferencia / totals.totalPartidas) * 100 : 0;
+                const pctText = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+                const color = pct >= 0 ? '#16a34a' : '#dc2626'; // verde / rojo
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <div style={{ fontSize: 12, color: '#666' }}>Porcentaje</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                        {/* Icon indicator: green check for positive, red minus for negative */}
+                        {pct >= 0 ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" title={pctText}>
+                            <circle cx="12" cy="12" r="10" fill="#16a34a" />
+                            <path d="M7 12.5l2.5 2.5L17 8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        ) : (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" title={pctText}>
+                            <circle cx="12" cy="12" r="10" fill="#dc2626" />
+                            <path d="M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                        <div style={{ fontSize: 14, color: color, fontWeight: 700 }}>{pctText}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
         </div>
       </div>
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './Login.css';
 import { login } from '../services/auth';
 import { useNavigate } from 'react-router-dom';
-import mipres from '../assets/mipres.jpg';
+// Using public/mipres.jpg to avoid bundling issues; place the file in public/ (served at /mipres.jpg)
 
 const Login = ({ setUser }) => {
   const navigate = useNavigate();
@@ -41,8 +41,8 @@ const Login = ({ setUser }) => {
       <div className="login-card" role="main" aria-labelledby="login-title">
         <div className="login-card-inner">
           <div className="logo-wrap" aria-hidden="true">
-            {/* Load mipres.jpg as an imported asset to let webpack handle it */}
-            <img src={mipres} alt="logo" className="camera-img" />
+            {/* Load mipres.jpg from public/ so the dev server serves it directly */}
+            <img src="/mipres.jpg" alt="logo" className="camera-img" />
           </div>
           <h1 id="login-title" className="login-title">USER LOGIN</h1>
           {error && <p className="login-error">{error}</p>}

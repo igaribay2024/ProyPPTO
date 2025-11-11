@@ -36,13 +36,29 @@ const Login = ({ setUser }) => {
     }
   };
 
+  const [showImg, setShowImg] = useState(true);
+
   return (
     <div className="login-bg">
       <div className="login-card" role="main" aria-labelledby="login-title">
         <div className="login-card-inner">
           <div className="logo-wrap" aria-hidden="true">
-            {/* Load mipres.jpg from public/ so the dev server serves it directly */}
-            <img src="/mipres.jpg" alt="logo" className="camera-img" />
+            {/* Load mipres.jpg from public/ with cache-busting timestamp. If it fails, show inline SVG fallback */}
+            {showImg && (
+              <img
+                src={`${process.env.PUBLIC_URL || ''}/mipres.jpg?_ts=${new Date().getTime()}`}
+                alt="logo"
+                className="camera-img"
+                onError={(e) => { setShowImg(false); }}
+              />
+            )}
+            {!showImg && (
+              <svg className="camera-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="8" y="20" width="48" height="32" rx="3" ry="3" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" />
+                <circle cx="32" cy="36" r="8" fill="rgba(255,255,255,0.85)" />
+                <path d="M20 20 L24 14 H40 L44 20" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" />
+              </svg>
+            )}
           </div>
           <h1 id="login-title" className="login-title">USER LOGIN</h1>
           {error && <p className="login-error">{error}</p>}

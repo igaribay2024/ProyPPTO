@@ -1,0 +1,51 @@
+Propuesta de limpieza - revisión requerida
+
+Fecha: 2025-11-10
+Autor: agente automático (preparación de archivo)
+
+Resumen:
+Se propone archivar (mover a `archive/cleanup-<timestamp>/`) los archivos y carpetas listados abajo. NO se borrará nada sin tu aprobación explícita; he creado también un script PowerShell `scripts/perform_cleanup.ps1` que, al ejecutarlo, realiza el movido/archivo. Revisa la lista y confirma si doy luz verde para ejecutar el script.
+
+Propuesta (candidatos a archivar):
+
+1) Carpeta de construcción generada
+- build/
+  Razon: carpeta generada por `npm run build`. Ocupa espacio y puede regenerarse. A menudo no debe estar en el repo (salvo que se publique aquí intencionalmente).
+
+2) Payloads y ejemplos de importación (probablemente artefactos de prueba)
+- backend/gaspayload.json
+- backend/prespayload.json
+- backend/userpayload.json
+  Razon: archivos de payload para testing/import — no son necesarios en producción y parecen ejemplos.
+
+3) Logs y archivos temporales
+- backend/invalid_tipo_attempts.log
+  Razon: log de import/validación; se puede archivar para auditoría.
+
+4) Scripts auxiliares / de migración / pruebas E2E que parecen fuera del flujo principal
+- backend/post_gasto.js
+- backend/post_pres.js
+- backend/post_user.js
+- backend/e2e.js
+- backend/inspectTable.js
+- backend/drop_tipo_column.js
+- backend/migrate_tipo_usuario.js
+- backend/migrate-usuarios.js
+- backend/test_update_user.js
+- backend/show_create_usuarios.js
+- backend/show_users_tipo.js
+- backend/get_meta_usuarios.js
+- backend/reset-password.js
+  Razon: scripts puntuales de migración/inspección y pruebas. Pueden conservarse en un archivo de `archive/` si quieres histórico, pero no deben interferir con el código en `backend/` en producción.
+
+Notas y recomendaciones:
+- No propongo mover/eliminar `backend/server.js`, `backend/db.js` ni `backend/routes/crud.js` (componentes en uso)
+- No se tocará `node_modules/` ni `package.json` ni `src/`
+- Si prefieres que ciertos scripts permanezcan en `backend/tools/` o `backend/scripts/` en lugar de `archive/`, puedo moverlos allí.
+- Si quieres, en vez de mover, puedo crear un commit que elimine `build/` del repo (git rm -r --cached build && .gitignore) y añadir reglas a `.gitignore`. Dime si lo quieres.
+
+Pasos siguientes propuestos:
+- Revisa esta lista y marca OK o señala archivos que NO quieras archivar.
+- Si OK, ejecuta (o autorizas que ejecute) `scripts/perform_cleanup.ps1` para mover los archivos a `archive/cleanup-<timestamp>/`.
+
+Si quieres que también cree un commit git con los cambios (moviéndose en el árbol), dímelo y lo prepararía como patch.

@@ -3,6 +3,15 @@ const router = express.Router();
 const { getPool } = require('../db');
 const bcrypt = require('bcryptjs');
 
+// Helper to redact sensitive fields when logging
+function redactLog(obj) {
+  try {
+    const c = { ...obj };
+    ['password','password_hash','pass','clave'].forEach(k => { if (k in c) c[k] = '<<REDACTED>>'; });
+    return c;
+  } catch (e) { return obj; }
+}
+
 // Map resource names to table and primary key
 const resources = {
   usuarios: { table: 'usuarios', pk: 'idusuario' },
@@ -245,8 +254,21 @@ router.post('/:resource', async (req, res) => {
     try {
       [result] = await pool.execute(insertSql, values);
     } catch (sqlErr) {
-      console.error('SQL error during INSERT for', cfg.table, 'sql:', insertSql, 'values:', values, 'error:', sqlErr && sqlErr.message);
-      throw sqlErr;
+      // Log helpful context to debug payload issues (e.g., data truncation)
+      try {
+        console.error('SQL error during INSERT for', cfg.table);
+        console.error('SQL:', insertSql);
+        console.error('VALUES (preview):', values.map(v => (typeof v === 'string' && v.length > 200 ? String(v).slice(0,200)+'...' : v)));
+        console.error('error message:', sqlErr && (sqlErr.sqlMessage || sqlErr.message));
+        console.error('payload (redacted):', redactLog(req.body || {}));
+      } catch (le) {
+        console.error('Error logging SQL failure context:', le && le.message);
+      }
+      // Return a 400 with DB error details when it's a data issue (e.g., truncated)
+      if (sqlErr && /Data truncated/i.test(sqlErr.sqlMessage || sqlErr.message || '')) {
+        return res.status(400).json({ message: 'Invalid data for one or more columns', error: sqlErr.sqlMessage || sqlErr.message });
+      }
+      return res.status(500).json({ message: 'Database error during insert', error: sqlErr.sqlMessage || sqlErr.message });
     }
     const insertId = result.insertId;
   const [rows] = await pool.execute(`SELECT * FROM \`${table}\` WHERE \`${cfg.pk}\` = ?`, [insertId]);
@@ -365,8 +387,17 @@ router.put('/:resource/:id', async (req, res) => {
       values.push(v);
     }
     values.push(req.params.id);
-  await pool.execute(`UPDATE \`${table}\` SET ${assignments.join(', ')} WHERE \`${cfg.pk}\` = ?`, values);
-  const [rows] = await pool.execute(`SELECT * FROM \`${table}\` WHERE \`${cfg.pk}\` = ?`, [req.params.id]);
+    try {
+      await pool.execute(`UPDATE \`${table}\` SET ${assignments.join(', ')} WHERE \`${cfg.pk}\` = ?`, values);
+    } catch (sqlErr) {
+      console.error('SQL error during UPDATE for', cfg.table, 'error:', sqlErr && (sqlErr.sqlMessage || sqlErr.message));
+      console.error('payload (redacted):', redactLog(req.body || {}));
+      if (sqlErr && /Data truncated/i.test(sqlErr.sqlMessage || sqlErr.message || '')) {
+        return res.status(400).json({ message: 'Invalid data for one or more columns', error: sqlErr.sqlMessage || sqlErr.message });
+      }
+      return res.status(500).json({ message: 'Database error during update', error: sqlErr.sqlMessage || sqlErr.message });
+    }
+    const [rows] = await pool.execute(`SELECT * FROM \`${table}\` WHERE \`${cfg.pk}\` = ?`, [req.params.id]);
     if (!rows || rows.length === 0) return res.status(404).json({ message: 'Not found' });
     return res.json(rows[0]);
   } catch (err) {

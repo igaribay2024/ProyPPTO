@@ -1,0 +1,21 @@
+PR-003 (fix/save-create) - Crear branch, commit y push
+
+From the repo root run (PowerShell):
+
+# Create branch from main
+git checkout -b fix/save-create-validation
+
+# Stage changes we applied in this workspace
+git add src/utils/formatters.js src/services/resourceService.js backend/routes/crud.js
+
+# Commit
+git commit -m "fix: sanitize numeric strings client-side and improve DB error logging (resourceService + formatters + crud)"
+
+# Push branch
+git push -u origin fix/save-create-validation
+
+# Then open a PR in GitHub from branch `fix/save-create-validation` into `main` using the PR template.
+
+QA notes:
+- Run `npm start` and exercise create/update for resources (e.g., gastos) with numeric strings using commas or spaces.
+- When DB returns a truncation error, backend will now respond 400 with helpful message and log redacted payload to server console.

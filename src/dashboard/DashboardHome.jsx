@@ -129,6 +129,10 @@ export default function DashboardHome() {
     return { totalGastos: totalG, totalPartidas: totalP, diferencia: totalP - totalG };
   }, [records, year, selectedCategory]);
 
+  // unified typography for dashboard summary cards
+  const labelStyle = { fontSize: 13, color: '#666', fontFamily: 'inherit' };
+  const amountStyle = { fontSize: 20, fontWeight: 700, fontFamily: 'inherit' };
+
   const years = React.useMemo(() => {
     const setYears = new Set();
     for (const r of records) {
@@ -183,53 +187,53 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 20 }}>
-        <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
-          <div style={{ fontSize: 12, color: '#666' }}>Total Gastos</div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>${totals.totalGastos.toLocaleString()}</div>
-        </div>
-        <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
-          <div style={{ fontSize: 12, color: '#666' }}>Total Partidas</div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>${totals.totalPartidas.toLocaleString()}</div>
-        </div>
-        <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
-          <div style={{ fontSize: 12, color: '#666' }}>Diferencia</div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>${totals.diferencia.toLocaleString()}</div>
-              {(() => {
-                const pct = totals.totalPartidas ? (totals.diferencia / totals.totalPartidas) * 100 : 0;
-                const pctText = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
-                const color = pct >= 0 ? '#16a34a' : '#dc2626'; // verde / rojo
-                return (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                      <div style={{ fontSize: 12, color: '#666' }}>Porcentaje</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                                <div style={{
-                                  fontSize: 14,
-                                  fontWeight: 700,
-                                  color: '#fff',
-                                  backgroundColor: pct >= 0 ? '#16a34a' : '#dc2626',
-                                  padding: '6px 10px',
-                                  borderRadius: 6,
-                                  minWidth: 72,
-                                  textAlign: 'center'
-                                }}>{pctText}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 20 }}>
+            <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
+              <div style={labelStyle}>Total Gastos</div>
+              <div style={amountStyle}>${totals.totalGastos.toLocaleString()}</div>
+            </div>
+            <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
+              <div style={labelStyle}>Total Partidas</div>
+              <div style={amountStyle}>${totals.totalPartidas.toLocaleString()}</div>
+            </div>
+            <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
+              <div style={labelStyle}>Diferencia</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={amountStyle}>${totals.diferencia.toLocaleString()}</div>
+                {(() => {
+                  const pct = totals.totalPartidas ? (totals.diferencia / totals.totalPartidas) * 100 : 0;
+                  const pctText = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <div style={labelStyle}>Porcentaje</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                          <div style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            fontFamily: 'inherit',
+                            color: '#fff',
+                            backgroundColor: pct >= 0 ? '#16a34a' : '#dc2626',
+                            padding: '6px 10px',
+                            borderRadius: 6,
+                            minWidth: 72,
+                            textAlign: 'center'
+                          }}>{pctText}</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
+              </div>
             </div>
-        </div>
-      </div>
+          </div>
 
-      <div style={{ background: '#fff', padding: 20, borderRadius: 10, height: 420 }}>
-        <h3>Comparativo Mensual {year}</h3>
-        <div style={{ position: 'relative', height: '340px' }}>
-          <canvas ref={canvasRef} id="mainChart"></canvas>
-        </div>
-      </div>
+          <div style={{ background: '#fff', padding: 20, borderRadius: 10, height: 420 }}>
+            <h3>Comparativo Mensual {year}</h3>
+            <div style={{ position: 'relative', height: '340px' }}>
+              <canvas ref={canvasRef} id="mainChart"></canvas>
+            </div>
+          </div>
     </div>
   );
 }

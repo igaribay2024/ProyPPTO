@@ -130,8 +130,8 @@ export default function DashboardHome() {
   }, [records, year, selectedCategory]);
 
   // unified typography for summary labels and amounts
-  const labelStyle = { fontSize: 12, color: '#666' };
-  const amountStyle = { fontSize: 20, fontWeight: 700 };
+  const labelStyle = { fontSize: 12, color: '#666', lineHeight: '1.2' };
+  const amountStyle = { fontSize: 20, fontWeight: 700, lineHeight: '1.2' };
 
   const years = React.useMemo(() => {
     const setYears = new Set();
@@ -206,17 +206,18 @@ export default function DashboardHome() {
               const bg = pct >= 0 ? '#16a34a' : '#dc2626';
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={labelStyle}>Porcentaje</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                       <div style={{
                         ...amountStyle,
                         color: '#fff',
                         backgroundColor: bg,
-                        padding: '6px 10px',
+                        padding: '4px 10px',
                         borderRadius: 6,
                         minWidth: 72,
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        display: 'inline-block'
                       }}>{pctText}</div>
                     </div>
                   </div>

@@ -205,19 +205,16 @@ export default function DashboardHome() {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                       <div style={{ fontSize: 12, color: '#666' }}>Porcentaje</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                        {/* Icon indicator: green check for positive, red minus for negative */}
-                        {pct >= 0 ? (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" title={pctText}>
-                            <circle cx="12" cy="12" r="10" fill="#16a34a" />
-                            <path d="M7 12.5l2.5 2.5L17 8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        ) : (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" title={pctText}>
-                            <circle cx="12" cy="12" r="10" fill="#dc2626" />
-                            <path d="M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        )}
-                        <div style={{ fontSize: 14, color: color, fontWeight: 700 }}>{pctText}</div>
+                                <div style={{
+                                  fontSize: 14,
+                                  fontWeight: 700,
+                                  color: '#fff',
+                                  backgroundColor: pct >= 0 ? '#16a34a' : '#dc2626',
+                                  padding: '6px 10px',
+                                  borderRadius: 6,
+                                  minWidth: 72,
+                                  textAlign: 'center'
+                                }}>{pctText}</div>
                       </div>
                     </div>
                   </div>

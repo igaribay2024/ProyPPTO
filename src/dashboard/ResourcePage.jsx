@@ -3,6 +3,11 @@ import resourceService from '../services/resourceService';
 import api from '../services/api';
 import ResourceForm from './ResourceForm';
 import Box from '@mui/material/Box';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { DataGrid } from '@mui/x-data-grid';
 import { useToast } from '../components/ToastProvider';
 import { useNavigate } from 'react-router-dom';
@@ -142,6 +147,94 @@ export default function ResourcePage({ resource, onBack }) {
     }
   };
 
+  // Small inline expandable list component used only for the simplified Presupuestos view
+  const ExpandableList = ({ items, pkKey, displayFields = [], onEdit, onDelete }) => {
+    const [expanded, setExpanded] = useState(null);
+
+    const toggle = (id) => setExpanded(prev => (prev === id ? null : id));
+
+    return (
+      <div>
+        {items.map((it, idx) => {
+          const id = it[pkKey] !== undefined && it[pkKey] !== null ? it[pkKey] : idx;
+          const isOpen = expanded === id;
+          return (
+            <Accordion key={String(id)} expanded={isOpen} onChange={(e, expanded) => setExpanded(expanded ? id : null)}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'baseline' }}>
+                    {displayFields.map((f) => (
+                      <div key={f} style={{ minWidth: 120 }}>
+                        <strong>{(
+                          {
+                            nombre: 'Nombre',
+                            descripcion: 'Descripción',
+                            anno: 'Año',
+                            fecha_ini: 'Fecha Inicial',
+                            fecha_fin: 'Fecha Final',
+                            fecha: 'Fecha',
+                            status: 'Status',
+                            tipo_cambio: 'Tipo de Cambio',
+                            factor_inflacion: 'Factor de Inflación',
+                            observaciones: 'Observaciones'
+                          }[f] || (f === pkKey ? 'ID Presupuesto' : f)
+                        )}:</strong> {String(it[f] ?? '')}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <button onClick={(e) => { e.stopPropagation(); onEdit(it); }}>Editar</button>
+                    <button onClick={(e) => { e.stopPropagation(); onDelete(it[pkKey]); }} style={{ marginLeft: 8 }}>Eliminar</button>
+                  </div>
+                </div>
+              </AccordionSummary>
+              <AccordionDetails>
+                <div style={{ width: '100%' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <tbody>
+                      {(() => {
+                        const preferred = [
+                          'nombre', 'descripcion', 'anno', pkKey, 'fecha_ini', 'fecha_fin', 'status', 'tipo_cambio', 'factor_inflacion', 'observaciones'
+                        ];
+                        const allKeys = Object.keys(it || {});
+                        const ordered = [];
+                        for (const k of preferred) {
+                          if (k && allKeys.includes(String(k)) && !ordered.includes(String(k))) ordered.push(String(k));
+                        }
+                        for (const k of allKeys) if (!ordered.includes(k)) ordered.push(k);
+
+                        const labelFor = (k) => ({
+                          nombre: 'Nombre',
+                          descripcion: 'Descripción',
+                          anno: 'Año',
+                          fecha_ini: 'Fecha Inicial',
+                          fecha_fin: 'Fecha Final',
+                          fecha: 'Fecha',
+                          status: 'Status',
+                          tipo_cambio: 'Tipo de Cambio',
+                          factor_inflacion: 'Factor de Inflación',
+                          observaciones: 'Observaciones'
+                        }[k] || (k === pkKey ? 'ID Presupuesto' : k));
+
+                        return ordered.map((k) => (
+                          <tr key={k}>
+                            <td style={{ width: 180, padding: '6px 8px', verticalAlign: 'top', color: '#333', fontWeight: 600 }}>{labelFor(k)}</td>
+                            <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>{String(it[k] === null || it[k] === undefined ? '' : it[k])}</td>
+                          </tr>
+                        ));
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionDetails>
+            </Accordion>
+          );
+        })}
+      </div>
+    );
+  };
+
   const pkKey = items && items.length > 0 ? Object.keys(items[0]).find(k => /id/i.test(k)) : 'id';
 
   return (
@@ -162,30 +255,62 @@ export default function ResourcePage({ resource, onBack }) {
       ) : editing ? (
         <ResourceForm resource={resource} initial={editing} meta={meta} onCancel={() => setEditing(null)} onSubmit={handleSubmit} />
       ) : (
-        <Box sx={{ height: 600, width: '100%' }}>
-          {/* Build columns dynamically from the first item */}
-          {items && items.length > 0 && (
-            <DataGrid
-              rows={items.map((it, idx) => ({ ...it, id: it[pkKey] !== undefined && it[pkKey] !== null ? it[pkKey] : idx }))}
-              columns={[...Object.keys(items[0]).map((k) => ({ field: k, headerName: k, width: k === pkKey ? 90 : 150 })), { field: 'acciones', headerName: 'Acciones', width: 180, sortable: false, filterable: false, renderCell: (params) => (
-                <div>
-                  <button onClick={() => handleEdit(params.row)}>Editar</button>
-                  <button onClick={() => handleDelete(params.row[pkKey])} style={{ marginLeft: 8 }}>Eliminar</button>
-                </div>
-              ) }]
-              }
-              initialState={{
-                pagination: { paginationModel: { pageSize: 5 } }
-              }}
-              pageSizeOptions={[5, 10, 25]}
-              checkboxSelection
-              disableRowSelectionOnClick
-              autoHeight={false}
-            />
+        <div>
+          {/* Special simplified expandable list for presupuestos */}
+          {resource === 'presupuestos' && items && items.length > 0 ? (
+            <div>
+              {/* determine a few compact fields to show in the collapsed row */}
+              {/** pick up to 3 meaningful fields heuristically **/}
+              {(() => {
+                const priority = ['codigo', 'nombre', 'titulo', 'descripcion', 'monto', 'anno', 'status', 'fecha_ini', 'fecha'];
+                const keys = Object.keys(items[0] || {});
+                const nonPk = keys.filter(k => k !== pkKey);
+                const display = [];
+                for (const p of priority) {
+                  if (nonPk.includes(p) && display.length < 3) display.push(p);
+                }
+                for (const k of nonPk) {
+                  if (display.length >= 3) break;
+                  if (!display.includes(k)) display.push(k);
+                }
+                return (
+                  <ExpandableList
+                    items={items}
+                    pkKey={pkKey}
+                    displayFields={display}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                );
+              })()}
+            </div>
+          ) : (
+            <Box sx={{ height: 600, width: '100%' }}>
+              {/* Build columns dynamically from the first item */}
+              {items && items.length > 0 && (
+                <DataGrid
+                  rows={items.map((it, idx) => ({ ...it, id: it[pkKey] !== undefined && it[pkKey] !== null ? it[pkKey] : idx }))}
+                  columns={[...Object.keys(items[0]).map((k) => ({ field: k, headerName: k, width: k === pkKey ? 90 : 150 })), { field: 'acciones', headerName: 'Acciones', width: 180, sortable: false, filterable: false, renderCell: (params) => (
+                    <div>
+                      <button onClick={() => handleEdit(params.row)}>Editar</button>
+                      <button onClick={() => handleDelete(params.row[pkKey])} style={{ marginLeft: 8 }}>Eliminar</button>
+                    </div>
+                  ) }]
+                  }
+                  initialState={{
+                    pagination: { paginationModel: { pageSize: 5 } }
+                  }}
+                  pageSizeOptions={[5, 10, 25]}
+                  checkboxSelection
+                  disableRowSelectionOnClick
+                  autoHeight={false}
+                />
+              )}
+              {/* If there are no items, still render an empty grid message */}
+              {(!items || items.length === 0) && <div>No hay registros</div>}
+            </Box>
           )}
-          {/* If there are no items, still render an empty grid message */}
-          {(!items || items.length === 0) && <div>No hay registros</div>}
-        </Box>
+        </div>
       )}
     </div>
   );

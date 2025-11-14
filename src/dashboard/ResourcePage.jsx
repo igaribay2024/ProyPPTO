@@ -151,7 +151,7 @@ export default function ResourcePage({ resource, onBack }) {
   const ExpandableList = ({ items, pkKey, displayFields = [], onEdit, onDelete }) => {
     const [expanded, setExpanded] = useState(null);
 
-    const toggle = (id) => setExpanded(prev => (prev === id ? null : id));
+  // expansion handled via Accordion onChange
 
     return (
       <div>

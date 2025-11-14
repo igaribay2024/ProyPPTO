@@ -129,9 +129,9 @@ export default function DashboardHome() {
     return { totalGastos: totalG, totalPartidas: totalP, diferencia: totalP - totalG };
   }, [records, year, selectedCategory]);
 
-  // unified typography for dashboard summary cards
-  const labelStyle = { fontSize: 13, color: '#666', fontFamily: 'inherit' };
-  const amountStyle = { fontSize: 20, fontWeight: 700, fontFamily: 'inherit' };
+  // unified typography for summary labels and amounts
+  const labelStyle = { fontSize: 12, color: '#666' };
+  const amountStyle = { fontSize: 20, fontWeight: 700 };
 
   const years = React.useMemo(() => {
     const setYears = new Set();
@@ -165,7 +165,8 @@ export default function DashboardHome() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ marginBottom: 12 }}>
-        {/* Optional welcome text removed for a compact dashboard header */}
+        {/* <h2>Bienvenido al Sistema de Control de Presupuestos</h2>
+        <p>Selecciona un módulo del menú izquierdo para comenzar.</p> */}
       </div>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
@@ -177,23 +178,23 @@ export default function DashboardHome() {
         </div>
         <div style={{ flex: 1, minWidth: 220 }}>
           <label>Categoría</label>
-          <select style={{ width: '100%', padding: 8 }} value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-            <option value="todas">Todas las categorías</option>
-            {categories.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+            <select style={{ width: '100%', padding: 8 }} value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+              <option value="todas">Todas las categorías</option>
+              {categories.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 20 }}>
         <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
-          <div style={labelStyle}>Total Gastos</div>
-          <div style={amountStyle}>${totals.totalGastos.toLocaleString()}</div>
+          <div style={{ fontSize: 12, color: '#666' }}>Total Gastos</div>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>${totals.totalGastos.toLocaleString()}</div>
         </div>
         <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
-          <div style={labelStyle}>Total Partidas</div>
-          <div style={amountStyle}>${totals.totalPartidas.toLocaleString()}</div>
+          <div style={{ fontSize: 12, color: '#666' }}>Total Partidas</div>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>${totals.totalPartidas.toLocaleString()}</div>
         </div>
         <div style={{ padding: 20, borderRadius: 10, background: '#fff' }}>
           <div style={labelStyle}>Diferencia</div>
@@ -202,17 +203,16 @@ export default function DashboardHome() {
             {(() => {
               const pct = totals.totalPartidas ? (totals.diferencia / totals.totalPartidas) * 100 : 0;
               const pctText = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+              const bg = pct >= 0 ? '#16a34a' : '#dc2626';
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                     <div style={labelStyle}>Porcentaje</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                       <div style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        fontFamily: 'inherit',
+                        ...amountStyle,
                         color: '#fff',
-                        backgroundColor: pct >= 0 ? '#16a34a' : '#dc2626',
+                        backgroundColor: bg,
                         padding: '6px 10px',
                         borderRadius: 6,
                         minWidth: 72,

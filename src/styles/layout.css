@@ -1,0 +1,106 @@
+/* Simple responsive layout used by Dashboard */
+.layout-root {
+  display: flex;
+  height: 100vh;
+  background: #0f172a10; /* subtle */
+  color: #0f172a;
+}
+
+/* Custom scrollbar styles for alert banners */
+.alert-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.alert-scroll::-webkit-scrollbar-track {
+  background: #F7FAFC;
+  border-radius: 3px;
+}
+
+.alert-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E0;
+  border-radius: 3px;
+}
+
+.alert-scroll::-webkit-scrollbar-thumb:hover {
+  background: #A0AEC0;
+}
+
+.layout-sidebar {
+  width: 260px;
+  background: #1f2937; /* dark slate */
+  color: #94a3b8;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.layout-brand h3 { margin: 0 0 6px 0; color: #fff }
+.layout-user { font-size: 14px; color: #F5C400; margin-bottom: 8px; font-weight: 600; }
+
+.layout-nav { display:flex; flex-direction: column; gap: 8px; margin-top: 8px }
+.layout-link {
+  display:block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: #ffffff; /* labels should be white */
+  text-decoration: none;
+  font-weight: 600;
+  transition: all .12s ease;
+  align-items: center;
+}
+.layout-link:hover { background: rgba(255,255,255,0.03); transform: translateX(4px); }
+.layout-link.active { background: rgba(255,255,255,0.04); }
+
+/* Icon wrapper and per-menu icon colors + animations */
+.menu-icon { display: inline-flex; width: 20px; height: 20px; margin-right: 10px; align-items: center; justify-content: center; vertical-align: middle; }
+.menu-icon svg { width: 20px; height: 20px; }
+
+/* Animations */
+@keyframes icon-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes icon-bounce { 0% { transform: translateY(0); } 50% { transform: translateY(-4px); } 100% { transform: translateY(0); } }
+@keyframes icon-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes icon-wiggle { 0% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } 100% { transform: rotate(-6deg); } }
+
+/* Individual menu icon styles */
+.menu-icon.presupuestos svg { color: #60a5fa; animation: icon-pulse 2.2s ease-in-out infinite; }
+.menu-icon.gastos svg { color: #f59e0b; animation: icon-bounce 2s ease-in-out infinite; }
+.menu-icon.usuarios svg { color: #a78bfa; animation: icon-wiggle 2.4s ease-in-out infinite; }
+.menu-icon.conceptos svg { color: #06b6d4; animation: icon-pulse 2.6s ease-in-out infinite; }
+.menu-icon.cuentas svg { color: #84cc16; animation: icon-bounce 2.2s ease-in-out infinite; }
+.menu-icon.partidas svg { color: #f472b6; animation: icon-wiggle 2s ease-in-out infinite; }
+.menu-icon.plantas svg { color: #14b8a6; animation: icon-pulse 2s ease-in-out infinite; }
+
+.layout-logout { margin-top: 12px; width: 100%; padding: 10px 12px; border-radius: 6px; background: #F5C400; color: #000; border: none; cursor: pointer; font-weight: 700; box-shadow: 0 6px 12px rgba(0,0,0,0.12); }
+.layout-logout:hover { filter: brightness(0.98); transform: translateY(-1px); }
+
+.layout-content {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+}
+
+.layout-header h2 { margin: 0 0 6px 0; }
+.layout-main { margin-top: 18px; }
+
+@media (max-width: 800px) {
+  .layout-root { flex-direction: column; }
+  .layout-sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e6e9ee; }
+}
+
+/* Hide header logo on small screens to save space */
+@media (max-width: 800px) {
+  .layout-header .header-logo { display: none !important; }
+}
+
+/* Dashboard banners */
+.dashboard-banner { display: flex; flex-direction: column; gap: 6px; }
+.dashboard-banner .banner-red { background: rgba(239,68,68,0.08); color: #dc2626; padding: 8px 12px; border-radius: 6px; font-weight: 700; }
+.dashboard-banner .banner-yellow { background: rgba(245,158,11,0.06); color: #b45309; padding: 8px 12px; border-radius: 6px; font-weight: 700; }
+
+/* Sidebar compact summary */
+.sidebar-banner-summary { margin: 12px 0; background: #fff; border-radius: 8px; box-shadow: 0 6px 12px rgba(2,6,23,0.06); overflow: hidden }
+.sidebar-banner-summary .sidebar-banner-item { padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
+.sidebar-banner-summary .sidebar-banner-item.red { background: rgba(239,68,68,0.06); color: #b91c1c; font-weight: 700 }
+.sidebar-banner-summary .sidebar-banner-item.yellow { background: rgba(245,158,11,0.04); color: #92400e; font-weight: 700 }
+
+/* small helper to show a 'restore' link when hidden */
+.sidebar-banner-restore { margin: 10px 0; display: block; text-align: center; }

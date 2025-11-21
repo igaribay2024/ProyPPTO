@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="es">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Constructor de Presupuesto</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    html {
+      height: 100%;
+    }
+
+    .category-card {
+      transition: all 0.3s ease;
+    }
+
+    .category-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .item-row {
+      transition: all 0.2s ease;
+    }
+
+    .item-row:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .delete-btn {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .item-row:hover .delete-btn {
+      opacity: 1;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .loading-spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body>
+  <div id="app"></div>
+  <script>
+    const defaultConfig = {
+      background_color: "#0f172a",
+      surface_color: "#1e293b",
+      text_color: "#f1f5f9",
+      primary_action_color: "#3b82f6",
+      secondary_action_color: "#64748b",
+      font_family: "Inter",
+      font_size: 16,
+      main_title: "Constructor de Presupuesto",
+      subtitle: "Gestiona tus partidas y gastos de forma inteligente",
+      add_button_text: "Agregar Partida"
+    };
+
+    let allRecords = [];
+    let isLoading = false;
+
+    const categorias = [
+      { id: "personal", nombre: "Personal", icono: "👤" },
+      { id: "operativo", nombre: "Operativo", icono: "⚙️" },
+      { id: "marketing", nombre: "Marketing", icono: "📢" },
+      { id: "tecnologia", nombre: "Tecnología", icono: "💻" },
+      { id: "infraestructura", nombre: "Infraestructura", icono: "🏢" },
+      { id: "otros", nombre: "Otros", icono: "📋" }
+    ];
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      toast.style.backgroundColor = type === 'success' ? '#10b981' : '#ef4444';
+      toast.style.color = '#ffffff';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+      }).format(amount);
+    }
+
+    function calculateTotals() {
+      const totals = {};
+      categorias.forEach(cat => {
+        totals[cat.id] = allRecords
+          .filter(r => r.categoria === cat.id)
+          .reduce((sum, r) => sum + r.monto, 0);
+      });
+      totals.general = Object.values(totals).reduce((sum, val) => sum + val, 0);
+      return totals;
+    }
+
+    async function addPartida(categoria, concepto, monto, tipo) {
+      if (allRecords.length >= 999) {
+        showToast('Límite máximo de 999 partidas alcanzado', 'error');
+        return;
+      }
+
+      isLoading = true;
+      renderApp();
+
+      const newRecord = {
+        id: Date.now().toString(),
+        categoria,
+        concepto,
+        monto: parseFloat(monto),
+        fecha: new Date().toISOString(),
+        tipo
+      };
+
+      const result = await window.dataSdk.create(newRecord);
+      
+      isLoading = false;
+
+      if (result.isOk) {
+        showToast('Partida agregada exitosamente');
+      } else {
+        showToast('Error al agregar partida', 'error');
+        renderApp();
+      }
+    }
+
+    async function deletePartida(record) {
+      isLoading = true;
+      renderApp();
+
+      const result = await window.dataSdk.delete(record);
+      
+      isLoading = false;
+
+      if (result.isOk) {
+        showToast('Partida eliminada');
+      } else {
+        showToast('Error al eliminar partida', 'error');
+        renderApp();
+      }
+    }
+
+    function renderApp() {
+      const config = window.elementSdk?.config || defaultConfig;
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      const baseFontStack = 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+
+      const totals = calculateTotals();
+
+      const app = document.getElementById('app');
+      app.style.backgroundColor = config.background_color || defaultConfig.background_color;
+      app.style.color = config.text_color || defaultConfig.text_color;
+      app.style.minHeight = '100%';
+      app.style.padding = '32px 24px';
+
+      app.innerHTML = `
+        <div style="max-width: 1200px; margin: 0 auto;">
+          <!-- Header -->
+          <div style="text-align: center; margin-bottom: 48px;">
+            <h1 id="main-title" style="font-size: ${baseSize * 2.5}px; font-weight: 800; margin: 0 0 12px 0; font-family: ${customFont}, ${baseFontStack};">
+              ${config.main_title || defaultConfig.main_title}
+            </h1>
+            <p id="subtitle" style="font-size: ${baseSize * 1.1}px; opacity: 0.8; margin: 0; font-family: ${customFont}, ${baseFontStack};">
+              ${config.subtitle || defaultConfig.subtitle}
+            </p>
+          </div>
+
+          <!-- Total General -->
+          <div style="background: linear-gradient(135deg, ${config.primary_action_color || defaultConfig.primary_action_color}, ${config.secondary_action_color || defaultConfig.secondary_action_color}); padding: 32px; border-radius: 20px; margin-bottom: 32px; text-align: center;">
+            <div style="font-size: ${baseSize * 0.9}px; opacity: 0.9; margin-bottom: 8px; font-family: ${customFont}, ${baseFontStack};">Total General</div>
+            <div style="font-size: ${baseSize * 3}px; font-weight: 800; font-family: ${customFont}, ${baseFontStack};">${formatCurrency(totals.general)}</div>
+          </div>
+
+          <!-- Categorías Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            ${categorias.map(cat => `
+              <div class="category-card" style="background-color: ${config.surface_color || defaultConfig.surface_color}; padding: 24px; border-radius: 16px; cursor: pointer;" onclick="openCategoryModal('${cat.id}')">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                  <span style="font-size: ${baseSize * 2}px;">${cat.icono}</span>
+                  <h3 style="font-size: ${baseSize * 1.25}px; font-weight: 700; margin: 0; font-family: ${customFont}, ${baseFontStack};">${cat.nombre}</h3>
+                </div>
+                <div style="font-size: ${baseSize * 1.75}px; font-weight: 700; color: ${config.primary_action_color || defaultConfig.primary_action_color}; font-family: ${customFont}, ${baseFontStack};">
+                  ${formatCurrency(totals[cat.id] || 0)}
+                </div>
+                <div style="font-size: ${baseSize * 0.85}px; opacity: 0.7; margin-top: 8px; font-family: ${customFont}, ${baseFontStack};">
+                  ${allRecords.filter(r => r.categoria === cat.id).length} partidas
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Lista de Partidas -->
+          <div style="background-color: ${config.surface_color || defaultConfig.surface_color}; padding: 24px; border-radius: 16px;">
+            <h2 style="font-size: ${baseSize * 1.5}px; font-weight: 700; margin: 0 0 24px 0; font-family: ${customFont}, ${baseFontStack};">Todas las Partidas</h2>
+            ${allRecords.length === 0 ? `
+              <div style="text-align: center; padding: 48px 24px; opacity: 0.6;">
+                <div style="font-size: ${baseSize * 3}px; margin-bottom: 16px;">📊</div>
+                <p style="font-size: ${baseSize * 1.1}px; margin: 0; font-family: ${customFont}, ${baseFontStack};">No hay partidas registradas</p>
+                <p style="font-size: ${baseSize * 0.9}px; margin: 8px 0 0 0; font-family: ${customFont}, ${baseFontStack};">Haz clic en una categoría para comenzar</p>
+              </div>
+            ` : `
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                ${allRecords.map((record, index) => {
+                  const cat = categorias.find(c => c.id === record.categoria);
+                  return `
+                    <div class="item-row" data-record-id="${record.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-radius: 12px; background-color: rgba(255, 255, 255, 0.02);">
+                      <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                        <span style="font-size: ${baseSize * 1.5}px;">${cat?.icono || '📋'}</span>
+                        <div style="flex: 1;">
+                          <div style="font-size: ${baseSize}px; font-weight: 600; margin-bottom: 4px; font-family: ${customFont}, ${baseFontStack};">${record.concepto}</div>
+                          <div style="font-size: ${baseSize * 0.85}px; opacity: 0.7; font-family: ${customFont}, ${baseFontStack};">
+                            ${cat?.nombre || 'Sin categoría'} • ${record.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}
+                          </div>
+                        </div>
+                        <div style="font-size: ${baseSize * 1.25}px; font-weight: 700; color: ${record.tipo === 'ingreso' ? '#10b981' : config.text_color || defaultConfig.text_color}; font-family: ${customFont}, ${baseFontStack};">
+                          ${record.tipo === 'ingreso' ? '+' : '-'}${formatCurrency(record.monto)}
+                        </div>
+                      </div>
+                      <button class="delete-btn" onclick="confirmDelete(${index})" style="background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: ${baseSize * 0.85}px; font-weight: 600; font-family: ${customFont}, ${baseFontStack};">
+                        Eliminar
+                      </button>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); z-index: 100; align-items: center; justify-content: center; padding: 24px;">
+          <div style="background-color: ${config.surface_color || defaultConfig.surface_color}; padding: 32px; border-radius: 20px; max-width: 500px; width: 100%;">
+            <h3 id="modal-title" style="font-size: ${baseSize * 1.5}px; font-weight: 700; margin: 0 0 24px 0; font-family: ${customFont}, ${baseFontStack};">Agregar Partida</h3>
+            
+            <form id="partida-form" style="display: flex; flex-direction: column; gap: 20px;">
+              <div>
+                <label for="tipo" style="display: block; font-size: ${baseSize * 0.9}px; font-weight: 600; margin-bottom: 8px; font-family: ${customFont}, ${baseFontStack};">Tipo</label>
+                <select id="tipo" required style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.1); background-color: ${config.background_color || defaultConfig.background_color}; color: ${config.text_color || defaultConfig.text_color}; font-size: ${baseSize}px; font-family: ${customFont}, ${baseFontStack};">
+                  <option value="gasto">Gasto</option>
+                  <option value="ingreso">Ingreso</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="concepto" style="display: block; font-size: ${baseSize * 0.9}px; font-weight: 600; margin-bottom: 8px; font-family: ${customFont}, ${baseFontStack};">Concepto</label>
+                <input type="text" id="concepto" required placeholder="Ej: Salarios, Publicidad, Equipos..." style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.1); background-color: ${config.background_color || defaultConfig.background_color}; color: ${config.text_color || defaultConfig.text_color}; font-size: ${baseSize}px; font-family: ${customFont}, ${baseFontStack};">
+              </div>
+
+              <div>
+                <label for="monto" style="display: block; font-size: ${baseSize * 0.9}px; font-weight: 600; margin-bottom: 8px; font-family: ${customFont}, ${baseFontStack};">Monto</label>
+                <input type="number" id="monto" required min="0" step="0.01" placeholder="0.00" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.1); background-color: ${config.background_color || defaultConfig.background_color}; color: ${config.text_color || defaultConfig.text_color}; font-size: ${baseSize}px; font-family: ${customFont}, ${baseFontStack};">
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-top: 8px;">
+                <button type="button" onclick="closeModal()" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background-color: ${config.secondary_action_color || defaultConfig.secondary_action_color}; color: white; font-size: ${baseSize}px; font-weight: 600; cursor: pointer; font-family: ${customFont}, ${baseFontStack};">
+                  Cancelar
+                </button>
+                <button type="submit" id="submit-btn" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background-color: ${config.primary_action_color || defaultConfig.primary_action_color}; color: white; font-size: ${baseSize}px; font-weight: 600; cursor: pointer; font-family: ${customFont}, ${baseFontStack}; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <span id="submit-text">${config.add_button_text || defaultConfig.add_button_text}</span>
+                  <div id="submit-spinner" class="loading-spinner" style="display: none;"></div>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+
+      const form = document.getElementById('partida-form');
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const submitSpinner = document.getElementById('submit-spinner');
+        
+        submitBtn.disabled = true;
+        submitText.style.display = 'none';
+        submitSpinner.style.display = 'block';
+
+        const categoria = form.dataset.categoria;
+        const concepto = document.getElementById('concepto').value;
+        const monto = document.getElementById('monto').value;
+        const tipo = document.getElementById('tipo').value;
+
+        await addPartida(categoria, concepto, monto, tipo);
+        
+        submitBtn.disabled = false;
+        submitText.style.display = 'block';
+        submitSpinner.style.display = 'none';
+        
+        closeModal();
+      };
+    }
+
+    function openCategoryModal(categoriaId) {
+      const modal = document.getElementById('modal');
+      const form = document.getElementById('partida-form');
+      const modalTitle = document.getElementById('modal-title');
+      const categoria = categorias.find(c => c.id === categoriaId);
+      
+      form.dataset.categoria = categoriaId;
+      modalTitle.textContent = `${categoria.icono} ${categoria.nombre}`;
+      form.reset();
+      
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    let recordToDelete = null;
+
+    function confirmDelete(index) {
+      recordToDelete = allRecords[index];
+      const row = document.querySelector(`[data-record-id="${recordToDelete.id}"]`);
+      const deleteBtn = row.querySelector('.delete-btn');
+      
+      deleteBtn.textContent = '¿Confirmar?';
+      deleteBtn.style.backgroundColor = '#dc2626';
+      
+      deleteBtn.onclick = async () => {
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<div class="loading-spinner"></div>';
+        await deletePartida(recordToDelete);
+        recordToDelete = null;
+      };
+      
+      setTimeout(() => {
+        if (recordToDelete) {
+          deleteBtn.textContent = 'Eliminar';
+          deleteBtn.style.backgroundColor = '#ef4444';
+          deleteBtn.onclick = () => confirmDelete(index);
+        }
+      }, 3000);
+    }
+
+    const dataHandler = {
+      onDataChanged(data) {
+        allRecords = data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        renderApp();
+      }
+    };
+
+    async function onConfigChange(config) {
+      renderApp();
+    }
+
+    async function init() {
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities: (config) => ({
+            recolorables: [
+              {
+                get: () => config.background_color || defaultConfig.background_color,
+                set: (value) => {
+                  config.background_color = value;
+                  window.elementSdk.setConfig({ background_color: value });
+                }
+              },
+              {
+                get: () => config.surface_color || defaultConfig.surface_color,
+                set: (value) => {
+                  config.surface_color = value;
+                  window.elementSdk.setConfig({ surface_color: value });
+                }
+              },
+              {
+                get: () => config.text_color || defaultConfig.text_color,
+                set: (value) => {
+                  config.text_color = value;
+                  window.elementSdk.setConfig({ text_color: value });
+                }
+              },
+              {
+                get: () => config.primary_action_color || defaultConfig.primary_action_color,
+                set: (value) => {
+                  config.primary_action_color = value;
+                  window.elementSdk.setConfig({ primary_action_color: value });
+                }
+              },
+              {
+                get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+                set: (value) => {
+                  config.secondary_action_color = value;
+                  window.elementSdk.setConfig({ secondary_action_color: value });
+                }
+              }
+            ],
+            borderables: [],
+            fontEditable: {
+              get: () => config.font_family || defaultConfig.font_family,
+              set: (value) => {
+                config.font_family = value;
+                window.elementSdk.setConfig({ font_family: value });
+              }
+            },
+            fontSizeable: {
+              get: () => config.font_size || defaultConfig.font_size,
+              set: (value) => {
+                config.font_size = value;
+                window.elementSdk.setConfig({ font_size: value });
+              }
+            }
+          }),
+          mapToEditPanelValues: (config) => new Map([
+            ["main_title", config.main_title || defaultConfig.main_title],
+            ["subtitle", config.subtitle || defaultConfig.subtitle],
+            ["add_button_text", config.add_button_text || defaultConfig.add_button_text]
+          ])
+        });
+      }
+
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error("Error al inicializar Data SDK");
+        }
+      }
+
+      renderApp();
+    }
+
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'999a515cb30d5266',t:'MTc2MjMyNDM4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

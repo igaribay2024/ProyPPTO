@@ -1,0 +1,46 @@
+/* Background and centered card similar to provided teal design */
+:root{
+  --accent: #0f766e; /* contrast color for headings/labels */
+  --muted: #6b7280;
+  --btn-yellow: #F5C400; /* provided yellow swatch */
+}
+html,body,#root{height:100%;}
+.login-bg{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px;background: #ffffff;position:relative;} 
+.login-bg-img{position:absolute;inset:0;/* background-image set inline to avoid css-loader resolution */background-size:cover;background-position:center;background-repeat:no-repeat;pointer-events:none;z-index:0;filter:contrast(0.98)}
+.login-card{
+  width:360px;max-width:92%;
+  background: #ffffff;
+  border-radius:12px;
+  box-shadow: 0 10px 25px rgba(2,6,23,0.08);
+  border: 1px solid #e6edf0;
+  position:relative;
+  padding:22px;
+  z-index:1;
+}
+.login-card-inner{padding:18px 20px 24px 20px;text-align:center;color:#0b1f1b}
+.logo-wrap{display:flex;align-items:center;justify-content:center;margin-top:-28px;margin-bottom:10px}
+.camera-icon{width:96px;height:96px;opacity:0.95}
+.camera-img{width:96px;height:96px;object-fit:contain;border-radius:6px;border:0;background:#fff;padding:6px}
+.login-title{letter-spacing:2px;margin:10px 0 12px 0;font-weight:700;color:var(--accent);font-size:18px}
+.login-error{color:#9b111e;background:rgba(255,0,0,0.05);padding:6px;border-radius:6px;margin:8px 0;font-size:13px}
+.login-form{display:flex;flex-direction:column;gap:12px}
+.input-group input{width:100%;padding:10px 12px;border-radius:6px;border:1px solid #e6edf0;background:#ffffff;color:#0b1f1b;outline:none;font-size:14px}
+.input-group input::placeholder{color:var(--muted)}
+.login-controls{display:flex;justify-content:space-between;align-items:center;margin-top:4px;margin-bottom:6px}
+.remember{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.remember input{width:14px;height:14px}
+.forgot{color:var(--muted);font-size:13px;text-decoration:none}
+.forgot:hover{opacity:0.9}
+.login-button{margin-top:6px;background:var(--btn-yellow);color:#000;border:none;padding:12px 18px;border-radius:6px;font-weight:700;letter-spacing:0.6px;cursor:pointer;box-shadow:0 6px 12px rgba(0,0,0,0.12)}
+.login-button[disabled]{opacity:0.6;cursor:default}
+.login-button[disabled]{opacity:0.6;cursor:default}
+
+/* subtle framed card effect */
+.login-card:before{
+  content:'';position:absolute;inset:6px;border-radius:10px;box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset;pointer-events:none
+}
+
+@media (max-width:420px){
+  .camera-icon{width:72px;height:72px}
+  .login-card{width:92%}
+}

@@ -1,0 +1,32 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* Use the provided light gray swatch as the global background (from attachment) */
+  background-color: #E5E5E5;
+  background-image: none;
+  color: #111827; /* dark text for good contrast on light gray */
+}
+
+code {
+  margin: 0;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Keep other global resets / utilities here as needed */
+
+/* Decorative fractal background for the Inicio panel (non-interactive) */
+.inicio-panel {
+  position: relative;
+  overflow: hidden;
+}
+/* Place the decorative background as a dedicated child element with class .inicio-bg
+   so webpack won't try to resolve the asset from CSS; children except the background
+   are elevated above it. */
+.inicio-panel > :not(.inicio-bg) {
+  position: relative;
+  z-index: 1;
+}

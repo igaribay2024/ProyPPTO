@@ -1,0 +1,28 @@
+PR-002 (repo-cleanup) - Move artifacts to archive and commit
+
+From repo root (PowerShell):
+
+# Create branch
+git checkout -b chore/archive-unused-artifacts
+
+# Run the cleanup script to move files to archive (review output)
+# This moves files to archive/cleanup-<timestamp>/ but does not change git history yet
+.
+.
+# Execute the script
+.\scripts\perform_cleanup.ps1
+
+# Stage the moved files: this will show deletions for original paths and additions under archive/
+git add -A
+
+# Commit
+git commit -m "chore: archive generated build and backend payload/scripts to archive/cleanup"
+
+# Push branch
+git push -u origin chore/archive-unused-artifacts
+
+# Open a PR from this branch to main. The PR should not contain sensitive data.
+
+Notes:
+- Inspect the created `archive/cleanup-<timestamp>/` folder before pushing.
+- If you prefer to keep some scripts in `backend/scripts/` instead of archive, move them there before committing.

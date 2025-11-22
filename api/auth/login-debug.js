@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     
     logs.push('6. Executing query...');
     const [rows] = await connection.execute(
-      'SELECT id, email, nombre, password FROM usuarios WHERE email = ?',
+      'SELECT idusuario, email, nombre, password FROM usuarios WHERE email = ?',
       [email]
     );
     logs.push(`7. Query returned ${rows.length} rows`);
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
     logs.push('12. Login successful, generating token...');
     const jwt = await import('jsonwebtoken');
     const token = jwt.default.sign(
-      { userId: user.id, email: user.email, nombre: user.nombre },
+      { userId: user.idusuario, email: user.email, nombre: user.nombre },
       process.env.JWT_SECRET || 'devsecret',
       { expiresIn: '24h' }
     );
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
       success: true,
       message: 'Login exitoso',
       token,
-      user: { id: user.id, email: user.email, nombre: user.nombre },
+      user: { id: user.idusuario, email: user.email, nombre: user.nombre },
       logs
     });
 

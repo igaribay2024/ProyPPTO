@@ -44,7 +44,7 @@ export default async function handler(req, res) {
       
       // Check if user exists
       const [rows] = await connection.execute(
-        'SELECT id, email, nombre, password, tipo_usuario, created_at FROM usuarios WHERE email = ?',
+        'SELECT idusuario, email, nombre, password FROM usuarios WHERE email = ?',
         [email]
       );
 
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
       // Generate real JWT token
       const token = jwt.default.sign(
         { 
-          userId: user.id, 
+          userId: user.idusuario, 
           email: user.email,
           nombre: user.nombre
         },
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
         message: 'Login exitoso',
         token,
         user: {
-          id: user.id,
+          id: user.idusuario,
           email: user.email,
           nombre: user.nombre
         }

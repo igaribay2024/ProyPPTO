@@ -1,9 +1,9 @@
-// Setup test data for debugging
+// Setup test data for debugging - works with or without database
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
 
   if (req.method === 'OPTIONS') {
@@ -11,8 +11,24 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method !== 'POST') {
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  // For GET requests, just return environment info
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      success: true,
+      message: 'Setup endpoint ready - use POST to create test data',
+      environment: {
+        DB_HOST: process.env.DB_HOST,
+        DB_USER: process.env.DB_USER,
+        DB_NAME: process.env.DB_NAME,
+        DB_PORT: process.env.DB_PORT,
+        hasPassword: !!process.env.DB_PASSWORD
+      },
+      instructions: 'Send POST request to create test data'
+    });
   }
 
   let connection;

@@ -2,7 +2,7 @@
 
 param(
     [string]$ResourceGroupName = "rg-altexppto",
-    [string]$Location = "East US",
+    [string]$Location = "West US 2",
     [string]$AppServicePlanName = "asp-altexppto",
     [string]$BackendAppName = "altexppto-api",
     [string]$FrontendAppName = "altexppto-frontend",
@@ -64,7 +64,7 @@ az staticwebapp create `
     --name $FrontendAppName `
     --resource-group $ResourceGroupName `
     --location $Location `
-    --source "https://github.com/igaribay2024/altexppto-frontend" `
+    --source "https://github.com/igaribay2024/ProyPPTO" `
     --branch "main" `
     --app-location "/" `
     --api-location "" `

@@ -15,8 +15,20 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Use Azure-optimized DB configuration in production
-const dbModule = process.env.NODE_ENV === 'production' ? './db-azure' : './db';
+// Detectar entorno y seleccionar configuración de DB apropiada
+let dbModule;
+if (process.env.RAILWAY_ENVIRONMENT) {
+  // Entorno Railway
+  dbModule = './db-railway';
+} else if (process.env.NODE_ENV === 'production') {
+  // Entorno Azure
+  dbModule = './db-azure';
+} else {
+  // Entorno local/desarrollo
+  dbModule = './db';
+}
+
+console.log(`🔧 Using database module: ${dbModule}`);
 const { ensureDatabaseAndTables, getPool } = require(dbModule);
 
 const PORT = process.env.PORT || 3001;

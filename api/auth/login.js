@@ -1,4 +1,4 @@
-// Real login function with MySQL Azure connection
+// Real login function with bcrypt and JWT
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -38,11 +38,14 @@ export default async function handler(req, res) {
     // Try real database connection
     try {
       const { getConnection } = await import('../../lib/database.js');
+      const bcrypt = await import('bcryptjs');
+      const jwt = await import('jsonwebtoken');
+      
       connection = await getConnection();
       
-      // Check if user exists
+      // Check if user exists - try multiple password column names
       const [rows] = await connection.execute(
-        'SELECT id, email, nombre, password FROM usuarios WHERE email = ?',
+        'SELECT id, email, nombre, password, password_hash FROM usuarios WHERE email = ?',
         [email]
       );
 
@@ -54,17 +57,34 @@ export default async function handler(req, res) {
       }
 
       const user = rows[0];
+      let passwordToCheck = user.password || user.password_hash;
+      let isValidPassword = false;
 
-      // For now, simple password check (we'll add bcrypt later)
-      if (password !== user.password) {
+      // Try bcrypt first, then plaintext
+      try {
+        isValidPassword = await bcrypt.default.compare(password, passwordToCheck);
+      } catch (bcryptError) {
+        // If bcrypt fails, try plain text comparison
+        isValidPassword = (password === passwordToCheck);
+      }
+
+      if (!isValidPassword) {
         return res.status(401).json({ 
           success: false,
           message: 'Contraseña incorrecta' 
         });
       }
 
-      // Generate simple token (we'll add JWT later)
-      const token = `token-${user.id}-${Date.now()}`;
+      // Generate real JWT token
+      const token = jwt.default.sign(
+        { 
+          userId: user.id, 
+          email: user.email,
+          nombre: user.nombre
+        },
+        process.env.JWT_SECRET || 'devsecret',
+        { expiresIn: '24h' }
+      );
 
       return res.status(200).json({
         success: true,
@@ -82,10 +102,17 @@ export default async function handler(req, res) {
       
       // Fallback to mock if database fails
       if (email === 'test@test.com' && password === 'test123') {
+        const jwt = await import('jsonwebtoken');
+        const token = jwt.default.sign(
+          { userId: 1, email, nombre: 'Usuario Test' },
+          process.env.JWT_SECRET || 'devsecret',
+          { expiresIn: '24h' }
+        );
+
         return res.status(200).json({
           success: true,
           message: 'Login exitoso (mock)',
-          token: 'mock-jwt-token-123456',
+          token,
           user: {
             id: 1,
             email: email,

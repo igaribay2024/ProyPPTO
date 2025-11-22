@@ -1,6 +1,6 @@
 import api from './api';
 
-const LOGIN_PATH = '/api/login'; // ajustar si tu backend usa otro path
+const LOGIN_PATH = '/api/auth/login'; // Vercel serverless function path
 
 export const login = async (email, password) => {
   try {

@@ -1,5 +1,5 @@
 // Simple login function for Vercel
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,17 +16,31 @@ export default function handler(req, res) {
   }
 
   try {
-    const { email, password } = req.body;
+    // Parse JSON body manually for Vercel
+    let body;
+    if (typeof req.body === 'string') {
+      body = JSON.parse(req.body);
+    } else {
+      body = req.body;
+    }
+
+    const { email, password } = body || {};
+
+    console.log('Login attempt:', { email, password: password ? '[PROVIDED]' : '[MISSING]' });
 
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email y contraseña son requeridos' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Email y contraseña son requeridos' 
+      });
     }
 
     // Mock response for testing
     if (email === 'test@test.com' && password === 'test123') {
       return res.status(200).json({
+        success: true,
         message: 'Login exitoso',
-        token: 'mock-jwt-token',
+        token: 'mock-jwt-token-123456',
         user: {
           id: 1,
           email: email,
@@ -35,11 +49,15 @@ export default function handler(req, res) {
       });
     }
 
-    return res.status(401).json({ message: 'Credenciales inválidas' });
+    return res.status(401).json({ 
+      success: false,
+      message: 'Credenciales inválidas' 
+    });
 
   } catch (error) {
     console.error('Error en login:', error);
     res.status(500).json({ 
+      success: false,
       message: 'Error interno del servidor',
       error: error.message
     });

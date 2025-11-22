@@ -53,6 +53,11 @@
 - `azure-resources.json` - ARM Template
 - `deploy-azure.ps1` - Script de despliegue
 
+### **Repositorio GitHub:**
+- Repositorio: `https://github.com/igaribay2024/altexppto-frontend`
+- Branch principal: `main`
+- CI/CD configurado para Azure Static Web Apps
+
 ---
 
 ## ⚙️ **Configuraciones Específicas**

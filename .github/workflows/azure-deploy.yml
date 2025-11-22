@@ -56,6 +56,8 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
+        # Configuración específica para altexppto-frontend
+        repository: igaribay2024/altexppto-frontend
     
     - name: Set up Node.js
       uses: actions/setup-node@v4

@@ -64,7 +64,7 @@ az staticwebapp create `
     --name $FrontendAppName `
     --resource-group $ResourceGroupName `
     --location $Location `
-    --source "https://github.com/igaribay2024/ProyPPTO" `
+    --source "https://github.com/igaribay2024/altexppto-frontend" `
     --branch "main" `
     --app-location "/" `
     --api-location "" `

@@ -33,8 +33,8 @@ az account set --subscription "YOUR_SUBSCRIPTION_ID"
 
 3. **Clonar repositorio y configurar:**
 ```bash
-git clone https://github.com/igaribay2024/ProyPPTO.git
-cd ProyPPTO
+git clone https://github.com/igaribay2024/altexppto-frontend.git
+cd altexppto-frontend
 ```
 
 ### **Fase 2: Infraestructura Azure**
@@ -97,6 +97,7 @@ az webapp deployment source config-zip \
 10. **Configurar Frontend (GitHub Actions):**
 ```bash
 # El frontend se despliega automáticamente via GitHub Actions
+# Repositorio: https://github.com/igaribay2024/altexppto-frontend
 # Solo necesita configurar los secrets en GitHub:
 # - AZURE_STATIC_WEB_APPS_API_TOKEN
 # - AZURE_WEBAPP_PUBLISH_PROFILE

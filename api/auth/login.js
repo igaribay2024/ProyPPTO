@@ -60,12 +60,26 @@ export default async function handler(req, res) {
       let passwordToCheck = user.password || user.password_hash;
       let isValidPassword = false;
 
-      // Try bcrypt first, then plaintext
-      try {
-        isValidPassword = await bcrypt.default.compare(password, passwordToCheck);
-      } catch (bcryptError) {
-        // If bcrypt fails, try plain text comparison
-        isValidPassword = (password === passwordToCheck);
+      console.log('User found:', user.email, 'Password field exists:', !!passwordToCheck);
+
+      // Try multiple password verification methods
+      if (passwordToCheck) {
+        // Method 1: Try bcrypt
+        try {
+          isValidPassword = await bcrypt.default.compare(password, passwordToCheck);
+          console.log('Bcrypt verification:', isValidPassword);
+        } catch (bcryptError) {
+          console.log('Bcrypt failed, trying plaintext');
+          // Method 2: Try plain text comparison
+          isValidPassword = (password === passwordToCheck);
+          console.log('Plaintext verification:', isValidPassword);
+        }
+      } else {
+        console.log('No password field found for user');
+        return res.status(500).json({ 
+          success: false,
+          message: 'Usuario sin contraseña configurada' 
+        });
       }
 
       if (!isValidPassword) {

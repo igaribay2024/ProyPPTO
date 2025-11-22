@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { getConnection } = await import('../../lib/database.js');
+    const { getConnection } = await import('../lib/database.js');
     const connection = await getConnection();
 
     switch (req.method) {

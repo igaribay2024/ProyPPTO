@@ -18,9 +18,30 @@ export default async function handler(req, res) {
   // Mock data que simula lo que debería estar en la base de datos
   const mockData = {
     usuarios: [
-      { id: 1, email: 'test@test.com', nombre: 'Usuario Test', created_at: '2025-11-22' },
-      { id: 2, email: 'ana.martinez@correo.com', nombre: 'Ana Martinez', created_at: '2025-11-20' },
-      { id: 3, email: 'admin@sistema.com', nombre: 'Administrador', created_at: '2025-11-15' }
+      { 
+        id: 1, 
+        email: 'test@test.com', 
+        nombre: 'Usuario Test', 
+        password: '$2b$10$rOZKqQr8oVkV0jZJ8p5mZeP.QYVqV6rZj0Y0rJZJZJZJZJZJZJZJZ', // bcrypt hash for 'test123'
+        tipo_usuario: 'admin',
+        created_at: '2025-11-22' 
+      },
+      { 
+        id: 2, 
+        email: 'ana.martinez@correo.com', 
+        nombre: 'Ana Martinez', 
+        password: '$2b$10$mTgUOIKJHy.rOZKqQr8oVkV0jZJ8p5mZeP.QYVqV6rZj0Y0rJZJ', // bcrypt hash for 'password123'
+        tipo_usuario: 'user',
+        created_at: '2025-11-20' 
+      },
+      { 
+        id: 3, 
+        email: 'admin@sistema.com', 
+        nombre: 'Administrador', 
+        password: '$2b$10$nTgUOIKJHy.sOZKqQr8oVkV0jZJ8p5mZeP.QYVqV6rZj0Y0rJZK',
+        tipo_usuario: 'admin',
+        created_at: '2025-11-15' 
+      }
     ],
     gastos: [
       { id: 1, usuario_id: 1, monto: 50.00, descripcion: 'Almuerzo', categoria: 'comida', fecha: '2025-11-20' },

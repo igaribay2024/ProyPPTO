@@ -3,12 +3,12 @@ import axios from 'axios';
 // Configuration for different environments
 const getBaseURL = () => {
   if (process.env.NODE_ENV === 'development') {
-    // En desarrollo usamos el proxy de CRA (package.json -> proxy)
-    return '';
+    // En desarrollo, usar localhost para las functions de Vercel
+    return 'http://localhost:3000';
   }
   
-  // Production environment
-  return process.env.REACT_APP_API_URL || 'https://altexppto-api.azurewebsites.net';
+  // Production environment - Vercel deployment
+  return process.env.REACT_APP_API_URL || 'https://altexppto.vercel.app';
 };
 
 const baseURL = getBaseURL();
@@ -20,8 +20,8 @@ const api = axios.create({
     'Cache-Control': 'no-cache',
     Pragma: 'no-cache'
   },
-  timeout: 30000, // Increased timeout for Azure
-  withCredentials: false // Azure CORS configuration
+  timeout: 30000, // Increased timeout for Vercel Functions
+  withCredentials: false // Vercel CORS configuration
 });
 // Automatically attach Authorization header if token is present in localStorage
 api.interceptors.request.use((config) => {

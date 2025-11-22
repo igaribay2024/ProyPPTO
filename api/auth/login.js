@@ -42,9 +42,9 @@ export default async function handler(req, res) {
       
       connection = await getConnection();
       
-      // Check if user exists - try multiple password column names
+      // Check if user exists
       const [rows] = await connection.execute(
-        'SELECT id, email, nombre, password, password_hash FROM usuarios WHERE email = ?',
+        'SELECT id, email, nombre, password, tipo_usuario, created_at FROM usuarios WHERE email = ?',
         [email]
       );
 
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       }
 
       const user = rows[0];
-      let passwordToCheck = user.password || user.password_hash;
+      let passwordToCheck = user.password;
 
       console.log('User found:', user.email, 'Password field exists:', !!passwordToCheck);
 

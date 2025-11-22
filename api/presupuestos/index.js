@@ -37,8 +37,7 @@ export default async function handler(req, res) {
       // Obtener presupuestos del usuario
       try {
         const [rows] = await connection.execute(
-          'SELECT * FROM presupuestos WHERE usuario_id = ? ORDER BY created_at DESC LIMIT 100',
-          [user.userId]
+          'SELECT * FROM presupuestos ORDER BY fecha_ini DESC LIMIT 100'
         );
         
         return res.status(200).json(rows);
@@ -68,9 +67,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'Nombre y monto límite son requeridos' });
       }
 
+      const currentYear = new Date().getFullYear();
+      const fechaIni = `${currentYear}-01-01`;
+      const fechaFin = `${currentYear}-12-31`;
+      
       const [result] = await connection.execute(
-        'INSERT INTO presupuestos (usuario_id, nombre, monto_limite, categoria, periodo, descripcion, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
-        [user.userId, nombre, monto_limite, categoria || 'general', periodo || 'mensual', descripcion || '']
+        'INSERT INTO presupuestos (nombre, anno, fecha_ini, fecha_fin, status, descripcion, tipo_cambio, factor_inflacion, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [nombre, currentYear, fechaIni, fechaFin, 'Proceso', descripcion || nombre, 19, 4, '']
       );
 
       return res.status(201).json({

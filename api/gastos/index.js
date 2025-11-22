@@ -37,7 +37,7 @@ export default async function handler(req, res) {
       // Obtener gastos del usuario
       try {
         const [rows] = await connection.execute(
-          'SELECT * FROM gastos WHERE usuario_id = ? ORDER BY fecha DESC, created_at DESC LIMIT 100',
+          'SELECT * FROM gastos WHERE idusuario = ? ORDER BY fecha DESC LIMIT 100',
           [user.userId]
         );
         
@@ -70,8 +70,8 @@ export default async function handler(req, res) {
       }
 
       const [result] = await connection.execute(
-        'INSERT INTO gastos (usuario_id, monto, descripcion, categoria, fecha, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-        [user.userId, monto, descripcion, categoria || 'general', fecha || new Date().toISOString().split('T')[0]]
+        'INSERT INTO gastos (idusuario, monto_base, nombre, categoria, fecha, anno, proveedor, moneda, tipo_cambio, status, tipo, idcuenta, idplanta, idpresupuesto) VALUES (?, ?, ?, ?, ?, YEAR(?), ?, ?, ?, ?, ?, ?, ?, ?)',
+        [user.userId, monto, descripcion, categoria || 'GENERAL', fecha || new Date().toISOString().split('T')[0], fecha || new Date().toISOString().split('T')[0], 'N/A', 'MXP', 1, 'Proceso', '2', 1, 1, 1]
       );
 
       return res.status(201).json({

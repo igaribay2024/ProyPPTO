@@ -8,7 +8,7 @@ const getBaseURL = () => {
   }
   
   // Production environment - Vercel deployment
-  return process.env.REACT_APP_API_URL || 'https://altexppto.vercel.app';
+  return process.env.REACT_APP_API_URL || 'https://proy-ppto.vercel.app';
 };
 
 const baseURL = getBaseURL();

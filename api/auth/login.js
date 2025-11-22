@@ -38,7 +38,6 @@ export default async function handler(req, res) {
     // Try real database connection
     try {
       const { getConnection } = await import('../../lib/database.js');
-      const bcrypt = await import('bcryptjs');
       const jwt = await import('jsonwebtoken');
       
       connection = await getConnection();
@@ -58,29 +57,20 @@ export default async function handler(req, res) {
 
       const user = rows[0];
       let passwordToCheck = user.password || user.password_hash;
-      let isValidPassword = false;
 
       console.log('User found:', user.email, 'Password field exists:', !!passwordToCheck);
 
-      // Try multiple password verification methods
-      if (passwordToCheck) {
-        // Method 1: Try bcrypt
-        try {
-          isValidPassword = await bcrypt.default.compare(password, passwordToCheck);
-          console.log('Bcrypt verification:', isValidPassword);
-        } catch (bcryptError) {
-          console.log('Bcrypt failed, trying plaintext');
-          // Method 2: Try plain text comparison
-          isValidPassword = (password === passwordToCheck);
-          console.log('Plaintext verification:', isValidPassword);
-        }
-      } else {
+      // Plain text password comparison only
+      if (!passwordToCheck) {
         console.log('No password field found for user');
         return res.status(500).json({ 
           success: false,
           message: 'Usuario sin contraseña configurada' 
         });
       }
+
+      const isValidPassword = (password === passwordToCheck);
+      console.log('Plaintext verification:', isValidPassword);
 
       if (!isValidPassword) {
         return res.status(401).json({ 

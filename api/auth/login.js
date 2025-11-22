@@ -1,8 +1,8 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { getConnection } = require('../../lib/database');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { getConnection } from '../../lib/database.js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');

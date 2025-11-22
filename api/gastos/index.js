@@ -1,5 +1,5 @@
-const { getConnection } = require('../../lib/database');
-const jwt = require('jsonwebtoken');
+import { getConnection } from '../../lib/database.js';
+import jwt from 'jsonwebtoken';
 
 // Helper function to verify JWT token
 function verifyToken(authHeader) {
@@ -9,7 +9,7 @@ function verifyToken(authHeader) {
   return jwt.verify(token, process.env.JWT_SECRET || 'devsecret');
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');

@@ -1,8 +1,15 @@
 import api from './api';
 
-const LOGIN_PATH = '/api/auth/login'; // Vercel serverless function path
+// Use /api/auth/login for Vercel, /api/login for local backend
+const getLoginPath = () => {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return '/api/login';
+  }
+  return '/api/auth/login';
+};
 
 export const login = async (email, password) => {
+  const LOGIN_PATH = getLoginPath();
   try {
     // Trim inputs to avoid accidental leading/trailing spaces from the UI
     const payloadEmail = (email || '').toString().trim();
